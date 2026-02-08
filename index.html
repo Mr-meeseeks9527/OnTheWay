@@ -392,6 +392,53 @@
             border: 1px solid var(--border);
             background: #fff;
             margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .map-shell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .map-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .map-address-list {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            width: min(72%, 360px);
+            max-height: 62%;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 8px 10px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .map-address-list h4 {
+            margin: 0 0 6px;
+            font-size: 0.82rem;
+            color: #0f172a;
+        }
+
+        .map-address-list ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .map-address-list li {
+            margin-bottom: 4px;
+            color: #334155;
+            font-size: 0.8rem;
+            line-height: 1.35;
+            word-break: break-all;
         }
 
         @media (min-width: 860px) {
@@ -438,6 +485,18 @@
 
             #map {
                 height: 220px;
+            }
+
+            .map-address-list {
+                width: calc(100% - 16px);
+                max-height: 52%;
+                right: 8px;
+                bottom: 8px;
+                padding: 7px 8px;
+            }
+
+            .map-address-list li {
+                font-size: 0.76rem;
             }
         }
     </style>
@@ -924,11 +983,14 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             const staticMapUrl = `https://restapi.amap.com/v3/staticmap?${params.toString()}`;
 
             mapEl.innerHTML = `
-                <img
-                    src="${staticMapUrl}"
-                    alt="高德静态地图"
-                    style="width:100%;height:100%;object-fit:cover;border-radius:12px;"
-                />
+                <div class="map-shell">
+                    <img
+                        src="${staticMapUrl}"
+                        alt="高德静态地图"
+                        class="map-image"
+                    />
+                    ${getAddressOverlayHtml(addresses)}
+                </div>
             `;
         }
 
@@ -964,10 +1026,33 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             ];
         }
 
+        function escapeHtml(input) {
+            return String(input)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getAddressOverlayHtml(addresses) {
+            if (!addresses || addresses.length === 0) {
+                return '';
+            }
+            return `
+                <div class="map-address-list">
+                    <h4>成员地址</h4>
+                    <ul>
+                        ${addresses.map((addr, index) => `<li>${index + 1}. ${escapeHtml(addr)}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
         function renderMockMap(recommendation, addresses) {
             const mapEl = document.getElementById('map');
             mapEl.innerHTML = `
-                <div style="
+                <div class="map-shell" style="
                     width: 100%;
                     height: 100%;
                     background: #e2e8f0;
@@ -1011,6 +1096,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                             配置高德 Web 服务 Key 可查看真实地图
                         </div>
                     </div>
+                    ${getAddressOverlayHtml(addresses)}
                 </div>
             `;
         }
