@@ -4,19 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>碰个头 - 智能选点</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f4f6f8;
+            --bg: #f5f5f5;
             --surface: #ffffff;
-            --surface-soft: #f8fafc;
-            --text: #0f172a;
-            --muted: #64748b;
-            --border: #dbe3ea;
-            --accent: #0f766e;
-            --accent-dark: #115e59;
-            --danger: #dc2626;
-            --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-            --radius: 14px;
+            --surface-soft: #fffef7;
+            --text: #000000;
+            --muted: #666666;
+            --border: #000000;
+            --border-width: 3px;
+            --accent: #FFD93D;
+            --accent-dark: #FFC107;
+            --primary: #FF6B6B;
+            --secondary: #6C5CE7;
+            --tertiary: #4ECDC4;
+            --danger: #FF4757;
+            --shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+            --shadow-hover: 0 6px 0 rgba(0, 0, 0, 0.15);
+            --radius: 20px;
+            --radius-full: 9999px;
         }
 
         * {
@@ -26,72 +35,88 @@
         }
 
         body {
-            font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+            font-family: "Poppins", "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
             color: var(--text);
             background: var(--bg);
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.5;
+            padding: 0;
+            line-height: 1.6;
         }
 
         .container {
-            max-width: 920px;
+            max-width: 480px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            min-height: 100vh;
         }
 
         .header {
-            margin-bottom: 20px;
+            background: var(--accent);
+            border-bottom: var(--border-width) solid var(--border);
+            padding: 24px 20px;
             text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header h1 {
             font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 6px;
+            font-weight: 900;
+            margin-bottom: 4px;
             color: var(--text);
+            letter-spacing: -0.02em;
         }
 
         .header p {
-            font-size: 0.98rem;
-            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text);
+            opacity: 0.7;
         }
 
         .card {
             background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 22px;
-            margin-bottom: 16px;
-            box-shadow: var(--shadow);
+            border: var(--border-width) solid var(--border);
+            border-radius: 0;
+            padding: 20px;
+            margin-bottom: 0;
+            box-shadow: none;
         }
 
         .card-title {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 14px;
-            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
             color: var(--text);
         }
 
         .card-title::before {
-            content: "";
-            width: 4px;
-            height: 18px;
-            border-radius: 999px;
-            background: var(--accent);
+            content: "⚙️";
+            font-size: 1.3rem;
+        }
+
+        .result-section .card-title::before {
+            content: "🎉";
         }
 
         .form-group {
-            margin-bottom: 14px;
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
-            margin-bottom: 6px;
-            font-size: 0.92rem;
-            font-weight: 600;
-            color: #334155;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         input[type="text"],
@@ -99,52 +124,62 @@
         input[type="password"],
         select {
             width: 100%;
-            height: 42px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
+            height: 50px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
             background: #fff;
             color: var(--text);
-            padding: 0 12px;
-            font-size: 0.95rem;
-            transition: border-color 0.16s ease-out, box-shadow 0.16s ease-out;
+            padding: 0 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
         }
 
         input:focus,
         select:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.14);
+            background: var(--surface-soft);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 16px;
         }
 
         .api-section {
             background: var(--surface-soft);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 14px;
+            border: var(--border-width) dashed var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 20px;
         }
 
         .api-toggle {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            color: var(--accent);
-            font-size: 0.9rem;
-            font-weight: 600;
+            gap: 8px;
+            color: var(--text);
+            font-size: 0.88rem;
+            font-weight: 700;
             cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .api-toggle:hover {
+            color: var(--accent-dark);
         }
 
         .api-inputs {
             display: none;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid var(--border);
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 2px solid var(--border);
         }
 
         .api-inputs.show {
@@ -152,46 +187,66 @@
         }
 
         .hint {
-            margin-top: 5px;
-            font-size: 0.82rem;
+            margin-top: 6px;
+            font-size: 0.8rem;
             color: var(--muted);
+            font-weight: 500;
+        }
+
+        .hint a {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .hint a:hover {
+            text-decoration: underline;
         }
 
         .member-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
         .member-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface-soft);
+            gap: 10px;
+            padding: 12px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .member-row:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         .member-index {
-            width: 30px;
-            height: 30px;
-            border-radius: 999px;
-            background: var(--accent);
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-full);
+            background: var(--primary);
             color: #fff;
-            font-size: 0.82rem;
-            font-weight: 700;
+            font-size: 1rem;
+            font-weight: 900;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            border: var(--border-width) solid var(--border);
+            box-shadow: var(--shadow);
         }
 
         .member-fields {
             flex: 1;
             display: grid;
             grid-template-columns: 1fr;
-            gap: 8px;
+            gap: 10px;
         }
 
         .member-preference {
@@ -199,69 +254,98 @@
         }
 
         .btn-remove {
-            width: 34px;
-            height: 34px;
-            border: 0;
-            border-radius: 8px;
-            background: #ef4444;
+            width: 44px;
+            height: 44px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-full);
+            background: var(--danger);
             color: #fff;
-            font-size: 1.15rem;
+            font-size: 1.4rem;
+            font-weight: 900;
             cursor: pointer;
             flex-shrink: 0;
-            transition: transform 0.16s ease-out, opacity 0.16s ease-out;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-remove:hover {
-            transform: translateY(-1px);
-            opacity: 0.92;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            background: #ff3838;
         }
 
         .btn-add {
             width: 100%;
-            height: 42px;
-            border: 1px dashed var(--accent);
-            border-radius: 10px;
-            background: #ecfdf5;
-            color: var(--accent-dark);
-            font-size: 0.94rem;
-            font-weight: 600;
+            height: 52px;
+            border: var(--border-width) dashed var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 800;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 12px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-add:hover {
+            background: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         .btn-primary {
             width: 100%;
-            height: 46px;
-            border: 0;
-            border-radius: 10px;
-            background: var(--accent);
+            height: 60px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius-full);
+            background: var(--primary);
             color: #fff;
-            font-size: 1rem;
-            font-weight: 700;
+            font-size: 1.1rem;
+            font-weight: 900;
             cursor: pointer;
-            transition: transform 0.16s ease-out, opacity 0.16s ease-out;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-primary::before {
+            content: "✨";
+            font-size: 1.3rem;
         }
 
         .btn-primary:hover {
-            transform: translateY(-1px);
-            opacity: 0.96;
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+            background: #ff5555;
         }
 
         .btn-primary:disabled {
-            opacity: 0.6;
+            opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
 
         .error-message {
             display: none;
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            border: 1px solid #fecaca;
-            border-radius: 8px;
-            color: #991b1b;
-            background: #fef2f2;
+            margin-bottom: 16px;
+            padding: 14px 16px;
+            border: var(--border-width) solid var(--danger);
+            border-radius: var(--radius);
+            color: var(--danger);
+            background: #fff5f5;
             font-size: 0.9rem;
+            font-weight: 700;
+            box-shadow: var(--shadow);
         }
 
         .error-message.show {
@@ -271,9 +355,10 @@
         .loading {
             display: none;
             text-align: center;
-            padding: 24px 10px;
-            color: var(--muted);
-            font-size: 0.9rem;
+            padding: 32px 10px;
+            color: var(--text);
+            font-size: 0.95rem;
+            font-weight: 700;
         }
 
         .loading.show {
@@ -281,13 +366,13 @@
         }
 
         .spinner {
-            width: 40px;
-            height: 40px;
-            margin: 0 auto 14px;
-            border-radius: 999px;
-            border: 3px solid #d1d5db;
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 16px;
+            border-radius: var(--radius-full);
+            border: 5px solid var(--bg);
             border-top-color: var(--accent);
-            animation: spin 0.9s linear infinite;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
@@ -304,118 +389,158 @@
 
         .members-summary {
             background: var(--surface-soft);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 12px;
-            margin-bottom: 12px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
         }
 
         .member-tag {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             margin: 4px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: var(--radius-full);
+            border: var(--border-width) solid var(--border);
             background: #fff;
-            color: #334155;
+            color: var(--text);
             font-size: 0.82rem;
+            font-weight: 700;
+            box-shadow: var(--shadow);
         }
 
         .member-tag .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: var(--accent);
+            width: 10px;
+            height: 10px;
+            border-radius: var(--radius-full);
+            background: var(--primary);
+            border: 2px solid var(--border);
         }
 
         .recommendation-card {
-            margin-bottom: 12px;
-            padding: 14px;
-            border: 1px solid #99f6e4;
-            border-radius: 10px;
-            background: #f0fdfa;
-            color: #134e4a;
+            margin-bottom: 16px;
+            padding: 20px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            background: var(--accent);
+            color: var(--text);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+
+        .recommendation-card::before {
+            content: "⭐";
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-size: 1.8rem;
         }
 
         .recommendation-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 6px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
         }
 
         .recommendation-card .address {
             font-size: 0.9rem;
-            color: #115e59;
-            margin-bottom: 8px;
+            font-weight: 600;
+            opacity: 0.8;
+            margin-bottom: 12px;
         }
 
         .recommendation-card .reason {
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.7);
-            padding: 10px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
             font-size: 0.9rem;
-            line-height: 1.55;
-            color: #0f172a;
+            font-weight: 600;
+            line-height: 1.6;
+            color: var(--text);
+            border: 2px solid var(--border);
         }
 
         .recommendation-list {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .recommendation-item {
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--surface-soft);
+            padding: 16px;
+            border-radius: var(--radius);
+            border: var(--border-width) solid var(--border);
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .recommendation-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
         }
 
         .recommendation-item h4 {
-            margin-bottom: 6px;
-            color: #1e293b;
-            font-size: 0.96rem;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 800;
         }
 
         .recommendation-item p {
-            color: #475569;
-            font-size: 0.86rem;
-            line-height: 1.48;
+            color: var(--text);
+            font-size: 0.85rem;
+            font-weight: 600;
+            line-height: 1.5;
+            opacity: 0.8;
+            margin-bottom: 6px;
+        }
+
+        .recommendation-item p strong {
+            color: var(--text);
+            opacity: 1;
         }
 
         .route-controls {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
-            margin-bottom: 12px;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface-soft);
+            gap: 12px;
+            margin-bottom: 16px;
+            padding: 16px;
+            border: var(--border-width) solid var(--border);
+            border-radius: var(--radius);
+            background: var(--surface);
+            box-shadow: var(--shadow);
         }
 
         .route-control-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .route-control-item label {
             margin-bottom: 0;
-            font-size: 0.84rem;
-            color: #475569;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         #map {
             width: 100%;
-            height: 250px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
+            height: 300px;
+            border-radius: var(--radius);
+            border: var(--border-width) solid var(--border);
             background: #fff;
-            margin-top: 10px;
+            margin-top: 0;
             overflow: hidden;
+            box-shadow: var(--shadow);
         }
 
         .map-shell {
@@ -433,106 +558,122 @@
 
         .map-address-list {
             position: absolute;
-            right: 8px;
-            bottom: 8px;
-            width: min(72%, 360px);
-            max-height: 62%;
+            right: 10px;
+            bottom: 10px;
+            width: min(70%, 340px);
+            max-height: 60%;
             overflow: auto;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.92);
-            padding: 8px 10px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+            border: var(--border-width) solid var(--border);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .map-address-list h4 {
-            margin: 0 0 6px;
+            margin: 0 0 8px;
             font-size: 0.82rem;
-            color: #0f172a;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .map-address-list ul {
             margin: 0;
-            padding-left: 16px;
+            padding-left: 18px;
         }
 
         .map-address-list li {
-            margin-bottom: 4px;
-            color: #334155;
+            margin-bottom: 5px;
+            color: var(--text);
             font-size: 0.8rem;
-            line-height: 1.35;
+            font-weight: 600;
+            line-height: 1.4;
             word-break: break-all;
         }
 
         .map-venue-list {
             position: absolute;
-            left: 8px;
-            top: 8px;
-            width: min(78%, 380px);
-            max-height: 48%;
+            left: 10px;
+            top: 10px;
+            width: min(76%, 360px);
+            max-height: 46%;
             overflow: auto;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.92);
-            padding: 8px 10px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+            border: var(--border-width) solid var(--border);
+            border-radius: 14px;
+            background: rgba(255, 221, 61, 0.98);
+            padding: 10px 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .map-venue-list h4 {
-            margin: 0 0 6px;
+            margin: 0 0 8px;
             font-size: 0.82rem;
-            color: #0f172a;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .map-venue-list ul {
             margin: 0;
-            padding-left: 16px;
+            padding-left: 18px;
         }
 
         .map-venue-list li {
-            margin-bottom: 4px;
-            color: #334155;
+            margin-bottom: 5px;
+            color: var(--text);
             font-size: 0.8rem;
-            line-height: 1.35;
+            font-weight: 600;
+            line-height: 1.4;
             word-break: break-all;
         }
 
         .map-route-list {
             position: absolute;
-            left: 8px;
-            bottom: 8px;
-            width: min(78%, 420px);
-            max-height: 45%;
+            left: 10px;
+            bottom: 10px;
+            width: min(76%, 400px);
+            max-height: 43%;
             overflow: auto;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.92);
-            padding: 8px 10px;
-            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+            border: var(--border-width) solid var(--border);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .map-route-list h4 {
-            margin: 0 0 6px;
+            margin: 0 0 8px;
             font-size: 0.82rem;
-            color: #0f172a;
+            font-weight: 800;
+            color: var(--text);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
         }
 
         .map-route-list ul {
             margin: 0;
-            padding-left: 16px;
+            padding-left: 18px;
         }
 
         .map-route-list li {
-            margin-bottom: 4px;
-            color: #334155;
+            margin-bottom: 5px;
+            color: var(--text);
             font-size: 0.8rem;
-            line-height: 1.35;
+            font-weight: 600;
+            line-height: 1.4;
             word-break: break-all;
         }
 
-        @media (min-width: 860px) {
+        @media (min-width: 600px) {
+            .container {
+                max-width: 520px;
+            }
+
             .header h1 {
-                font-size: 2.3rem;
+                font-size: 2.4rem;
             }
 
             .card {
@@ -544,7 +685,7 @@
             }
 
             #map {
-                height: 380px;
+                height: 400px;
             }
 
             .route-controls {
@@ -552,21 +693,21 @@
             }
         }
 
-        @media (max-width: 600px) {
-            body {
-                padding: 12px;
-            }
-
-            .card {
-                padding: 16px;
+        @media (max-width: 599px) {
+            .header {
+                padding: 20px 16px;
             }
 
             .header h1 {
-                font-size: 1.65rem;
+                font-size: 1.8rem;
             }
 
             .header p {
-                font-size: 0.9rem;
+                font-size: 0.88rem;
+            }
+
+            .card {
+                padding: 18px;
             }
 
             input[type="text"],
@@ -574,45 +715,46 @@
             input[type="password"],
             select {
                 font-size: 16px;
+                height: 48px;
             }
 
             #map {
-                height: 220px;
+                height: 260px;
+            }
+
+            .map-address-list,
+            .map-venue-list,
+            .map-route-list {
+                width: calc(100% - 20px);
+                left: 10px;
+                right: 10px;
+                padding: 8px 10px;
             }
 
             .map-address-list {
-                width: calc(100% - 16px);
-                max-height: 52%;
-                right: 8px;
-                bottom: 8px;
-                padding: 7px 8px;
-            }
-
-            .map-address-list li {
-                font-size: 0.76rem;
-            }
-
-            .map-venue-list,
-            .map-route-list {
-                width: calc(100% - 16px);
-                left: 8px;
-                right: 8px;
-                padding: 7px 8px;
+                max-height: 48%;
+                bottom: 10px;
             }
 
             .map-venue-list {
-                top: 8px;
-                max-height: 36%;
+                top: 10px;
+                max-height: 34%;
             }
 
             .map-route-list {
-                bottom: 8px;
-                max-height: 36%;
+                bottom: 10px;
+                max-height: 34%;
             }
 
+            .map-address-list li,
             .map-venue-list li,
             .map-route-list li {
                 font-size: 0.76rem;
+            }
+
+            .btn-primary {
+                height: 56px;
+                font-size: 1rem;
             }
         }
     </style>
@@ -620,8 +762,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>碰个头</h1>
-            <p>输入成员出发地，智能推荐聚会地点</p>
+            <h1>🎯 碰个头</h1>
+            <p>Pick a spot for the gang!</p>
         </div>
 
         <div class="card">
@@ -632,16 +774,16 @@
             <div class="api-section">
                 <div class="api-toggle" onclick="toggleApiInputs()">
                     <span>▶</span>
-                    <span>配置 API Keys（可选，默认演示模式）</span>
+                    <span>配置 API Keys（可选）</span>
                 </div>
                 <div class="api-inputs" id="apiInputs">
                     <div class="form-group">
-                        <label>DeepSeek API Key</label>
+                        <label>🤖 DeepSeek API Key</label>
                         <input type="password" id="deepseekKey" placeholder="输入你的 DeepSeek API Key">
                         <div class="hint">用于生成聚会地点推荐，可在 <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a> 获取</div>
                     </div>
                     <div class="form-group">
-                        <label>高德地图 API Key</label>
+                        <label>🗺️ 高德地图 API Key</label>
                         <input type="password" id="amapKey" placeholder="输入你的高德 Web API Key">
                         <div class="hint">用于地图与路径展示，可在 <a href="https://console.amap.com/dev/key/app" target="_blank">高德开放平台</a> 获取</div>
                     </div>
@@ -650,13 +792,13 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>聚会时间</label>
+                    <label>🕐 聚会时间</label>
                     <input type="time" id="meetingTime" value="19:00">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>成员信息（出发地 + 口味，至少 3 人）</label>
+                <label>👥 成员信息（至少 3 人）</label>
                 <div class="member-list" id="memberList">
                     <!-- 动态生成成员输入行 -->
                 </div>
@@ -664,7 +806,7 @@
             </div>
 
             <button class="btn-primary" id="generateBtn" onclick="generateMeetingPoint()">
-                生成碰面点
+                找到最佳地点！
             </button>
 
             <div class="loading" id="loading">
@@ -686,16 +828,16 @@
             <div class="recommendation-list" id="alternativeList"></div>
             <div class="route-controls">
                 <div class="route-control-item">
-                    <label for="finalVenueSelect">最终聚会地点</label>
+                    <label for="finalVenueSelect">📍 最终聚会地点</label>
                     <select id="finalVenueSelect"></select>
                 </div>
                 <div class="route-control-item">
-                    <label for="travelModeSelect">出行方式</label>
+                    <label for="travelModeSelect">🚗 出行方式</label>
                     <select id="travelModeSelect">
-                        <option value="driving">驾车</option>
-                        <option value="transit">公交</option>
-                        <option value="walking">步行</option>
-                        <option value="cycling">骑行</option>
+                        <option value="driving">🚗 驾车</option>
+                        <option value="transit">🚌 公交</option>
+                        <option value="walking">🚶 步行</option>
+                        <option value="cycling">🚴 骑行</option>
                     </select>
                 </div>
             </div>
