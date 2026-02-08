@@ -108,8 +108,15 @@
             align-items: center;
         }
 
-        .member-row input {
+        .member-fields {
             flex: 1;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 10px;
+        }
+
+        .member-preference {
+            min-width: 110px;
         }
 
         .member-index {
@@ -253,6 +260,12 @@
 
             .member-row {
                 gap: 8px;
+                align-items: flex-start;
+            }
+
+            .member-fields {
+                grid-template-columns: 1fr;
+                gap: 8px;
             }
 
             .member-index {
@@ -266,14 +279,8 @@
                 height: 34px;
             }
 
-            .preference-multi {
-                gap: 8px;
-                padding: 8px;
-            }
-
-            .pref-option {
-                padding: 5px 8px;
-                font-size: 0.85rem;
+            .member-preference {
+                min-width: auto;
             }
 
             .members-summary {
@@ -330,7 +337,8 @@
 
             input[type="text"],
             input[type="time"],
-            input[type="password"] {
+            input[type="password"],
+            select {
                 padding: 10px 12px;
                 font-size: 16px;
             }
@@ -496,35 +504,6 @@
             border-radius: 50%;
         }
 
-        .preference-multi {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            min-height: 50px;
-            align-items: center;
-        }
-
-        .pref-option {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 999px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            font-size: 0.9rem;
-            color: #334155;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .pref-option input {
-            accent-color: #667eea;
-        }
-
         .recommendation-list {
             display: grid;
             grid-template-columns: 1fr;
@@ -588,23 +567,10 @@
                     <label>聚会时间</label>
                     <input type="time" id="meetingTime" value="19:00">
                 </div>
-                <div class="form-group">
-                    <label>口味偏好（可选）</label>
-                    <div class="preference-multi" id="preference">
-                        <label class="pref-option"><input type="checkbox" name="preference" value="中餐">中餐</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="日料">日料</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="韩餐">韩餐</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="西餐">西餐</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="火锅">火锅</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="烧烤">烧烤</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="咖啡厅">咖啡厅</label>
-                        <label class="pref-option"><input type="checkbox" name="preference" value="酒吧">酒吧</label>
-                    </div>
-                </div>
             </div>
 
             <div class="form-group">
-                <label>成员出发地（至少3人）</label>
+                <label>成员信息（出发地 + 口味，至少3人）</label>
                 <div class="member-list" id="memberList">
                     <!-- 动态生成成员输入行 -->
                 </div>
@@ -647,6 +613,7 @@
         // 初始化成员列表
         let memberCount = 0;
         const MIN_MEMBERS = 3;
+        const CUISINE_OPTIONS = ['中餐', '日料', '韩餐', '西餐', '火锅', '烧烤', '咖啡厅', '酒吧'];
 
         // 默认示例地址
         const EXAMPLE_ADDRESSES = [
@@ -658,23 +625,34 @@
         function init() {
             // 添加初始成员
             for (let i = 0; i < MIN_MEMBERS; i++) {
-                addMember(EXAMPLE_ADDRESSES[i] || '');
+                addMember(EXAMPLE_ADDRESSES[i] || '', '');
             }
         }
 
-        function addMember(defaultValue = '') {
+        function addMember(defaultValue = '', defaultPreference = '') {
             memberCount++;
             const memberList = document.getElementById('memberList');
+            const preferenceOptionsHtml = ['<option value="">口味不限</option>']
+                .concat(
+                    CUISINE_OPTIONS.map((item) => (
+                        `<option value="${item}" ${defaultPreference === item ? 'selected' : ''}>${item}</option>`
+                    ))
+                ).join('');
             const row = document.createElement('div');
             row.className = 'member-row';
             row.id = `member-${memberCount}`;
             row.innerHTML = `
                 <div class="member-index">${memberList.children.length + 1}</div>
-                <input type="text"
-                       placeholder="输入出发地地址"
-                       value="${defaultValue}"
-                       class="member-input"
-                       required>
+                <div class="member-fields">
+                    <input type="text"
+                           placeholder="输入出发地地址"
+                           value="${defaultValue}"
+                           class="member-input"
+                           required>
+                    <select class="member-preference" aria-label="成员口味偏好">
+                        ${preferenceOptionsHtml}
+                    </select>
+                </div>
                 ${memberList.children.length >= MIN_MEMBERS ? `
                     <button class="btn-remove" onclick="removeMember(${memberCount})" title="移除">×</button>
                 ` : ''}
@@ -720,14 +698,20 @@
         async function generateMeetingPoint() {
             // 收集数据
             const time = document.getElementById('meetingTime').value;
-            const preferences = Array.from(
-                document.querySelectorAll('input[name="preference"]:checked')
-            ).map((item) => item.value);
-            const inputs = document.querySelectorAll('.member-input');
-            const addresses = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+            const rows = Array.from(document.querySelectorAll('.member-row'));
+            const members = rows.map((row, idx) => {
+                const address = row.querySelector('.member-input')?.value.trim() || '';
+                const preference = row.querySelector('.member-preference')?.value.trim() || '';
+                return {
+                    id: idx + 1,
+                    address,
+                    preference: preference || '口味不限'
+                };
+            }).filter((item) => item.address);
+            const addresses = members.map((item) => item.address);
 
             // 验证
-            if (addresses.length < MIN_MEMBERS) {
+            if (members.length < MIN_MEMBERS) {
                 showError(`请至少输入 ${MIN_MEMBERS} 个出发地`);
                 return;
             }
@@ -744,15 +728,15 @@
 
                 if (deepseekKey) {
                     // 调用 DeepSeek API
-                    recommendation = await callDeepSeekAPI(addresses, time, preferences, deepseekKey);
+                    recommendation = await callDeepSeekAPI(members, time, deepseekKey);
                 } else {
                     // 演示模式：模拟 API 调用
                     await simulateAPICall();
-                    recommendation = getMockRecommendations(preferences);
+                    recommendation = getMockRecommendations(members);
                 }
 
                 // 显示结果
-                displayResult(recommendation, addresses);
+                displayResult(recommendation, members);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -763,19 +747,17 @@
             }
         }
 
-        async function callDeepSeekAPI(addresses, time, preferences, apiKey) {
-            const preferenceText = preferences.length > 0 ? preferences.join('、') : '无特殊偏好';
+        async function callDeepSeekAPI(members, time, apiKey) {
             const prompt = `请根据以下信息推荐3个聚会碰面地点：
 
-出发地列表：
-${addresses.map((addr, i) => `${i + 1}. ${addr}`).join('\n')}
+成员信息列表（每人出发地和口味偏好）：
+${members.map((member) => `${member.id}. 出发地：${member.address}；口味偏好：${member.preference}`).join('\n')}
 
 聚会时间：${time}
-口味偏好：${preferenceText}
 
 请推荐3个具体地点（餐厅、商场或其他适合聚会的场所），要求：
 1. 考虑地理位置的中心性，让大家出行都比较方便
-2. 口味尽量覆盖偏好，若无法完全满足，请说明适配程度
+2. 重点考虑每位成员的口味偏好，尽量兼顾大多数
 3. 提供具体的地点名称和详细地址
 
 请按以下JSON格式返回：
@@ -870,7 +852,7 @@ ${addresses.map((addr, i) => `${i + 1}. ${addr}`).join('\n')}
             return { recommendations: list.slice(0, 3) };
         }
 
-        function getMockRecommendations(preferences) {
+        function getMockRecommendations(members) {
             const mockVenues = {
                 '中餐': { name: '全聚德烤鸭店', address: '北京市朝阳区建国路88号', reason: '经典中餐，位置便利，适合多人聚餐' },
                 '日料': { name: '元气寿司', address: '北京市朝阳区三里屯太古里', reason: '新鲜日料，环境优雅，交通便利' },
@@ -883,9 +865,18 @@ ${addresses.map((addr, i) => `${i + 1}. ${addr}`).join('\n')}
                 '': { name: '西贝莜面村', address: '北京市朝阳区朝阳大悦城', reason: '位置中心，口味大众，适合多人聚餐' }
             };
 
+            const preferenceCount = {};
+            members.forEach((member) => {
+                const key = member.preference && member.preference !== '口味不限' ? member.preference : '';
+                if (!key) return;
+                preferenceCount[key] = (preferenceCount[key] || 0) + 1;
+            });
+            const rankedPreferences = Object.keys(preferenceCount)
+                .sort((a, b) => preferenceCount[b] - preferenceCount[a]);
+
             const list = [];
             const seen = new Set();
-            preferences.forEach((pref) => {
+            rankedPreferences.forEach((pref) => {
                 if (mockVenues[pref] && !seen.has(pref)) {
                     list.push(mockVenues[pref]);
                     seen.add(pref);
@@ -905,22 +896,23 @@ ${addresses.map((addr, i) => `${i + 1}. ${addr}`).join('\n')}
             return { recommendations: list.slice(0, 3) };
         }
 
-        function displayResult(recommendation, addresses) {
+        function displayResult(recommendation, members) {
             const recList = recommendation.recommendations || [];
             if (recList.length === 0) {
                 throw new Error('没有可展示的推荐地点');
             }
             const primary = recList[0];
+            const addresses = members.map((item) => item.address);
 
             // 显示成员汇总
             const summaryEl = document.getElementById('membersSummary');
             summaryEl.innerHTML = `
-                <div style="margin-bottom: 10px; font-weight: 500; color: #555;">聚会成员（${addresses.length}人）</div>
+                <div style="margin-bottom: 10px; font-weight: 500; color: #555;">聚会成员（${members.length}人）</div>
                 <div>
-                    ${addresses.map(addr => `
+                    ${members.map(member => `
                         <span class="member-tag">
                             <span class="dot"></span>
-                            ${addr.length > 15 ? addr.substring(0, 15) + '...' : addr}
+                            ${member.address.length > 12 ? member.address.substring(0, 12) + '...' : member.address} · ${member.preference}
                         </span>
                     `).join('')}
                 </div>
