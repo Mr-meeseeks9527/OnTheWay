@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>聚会碰面点 - 智能推荐</title>
+    <title>碰个头 - 智能推荐</title>
     <style>
         * {
             margin: 0;
@@ -194,9 +194,154 @@
             gap: 20px;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            body {
+                padding: 14px;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .header {
+                margin-bottom: 18px;
+            }
+
+            .header h1 {
+                font-size: 1.9rem;
+            }
+
+            .header p {
+                font-size: 0.95rem;
+            }
+
+            .card {
+                padding: 18px;
+                margin-bottom: 14px;
+                border-radius: 14px;
+            }
+
+            .card-title {
+                font-size: 1.1rem;
+                margin-bottom: 14px;
+            }
+
             .form-row {
                 grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .form-group {
+                margin-bottom: 14px;
+            }
+
+            .api-section {
+                padding: 12px;
+                margin-bottom: 14px;
+            }
+
+            .btn-add {
+                padding: 11px;
+                margin-top: 8px;
+                font-size: 0.95rem;
+            }
+
+            .btn-primary {
+                padding: 14px 18px;
+                font-size: 1rem;
+            }
+
+            .member-row {
+                gap: 8px;
+            }
+
+            .member-index {
+                width: 30px;
+                height: 30px;
+                font-size: 0.82rem;
+            }
+
+            .btn-remove {
+                width: 34px;
+                height: 34px;
+            }
+
+            .preference-multi {
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .pref-option {
+                padding: 5px 8px;
+                font-size: 0.85rem;
+            }
+
+            .members-summary {
+                padding: 12px;
+                margin-bottom: 14px;
+            }
+
+            .recommendation-card {
+                padding: 16px;
+                margin-bottom: 14px;
+                border-radius: 12px;
+            }
+
+            .recommendation-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .recommendation-list {
+                gap: 10px;
+                margin-bottom: 14px;
+            }
+
+            .recommendation-item {
+                padding: 12px;
+            }
+
+            #map {
+                height: 300px;
+                margin-top: 14px;
+            }
+
+            .loading {
+                padding: 26px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.55rem;
+            }
+
+            .header p {
+                font-size: 0.88rem;
+            }
+
+            .card {
+                padding: 14px;
+                border-radius: 12px;
+            }
+
+            input[type="text"],
+            input[type="time"],
+            input[type="password"] {
+                padding: 10px 12px;
+                font-size: 16px;
+            }
+
+            #map {
+                height: 240px;
+            }
+
+            .spinner {
+                width: 40px;
+                height: 40px;
             }
         }
 
@@ -410,7 +555,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>聚会碰面点</h1>
+            <h1>碰个头</h1>
             <p>输入出发地，智能推荐最佳聚会地点</p>
         </div>
 
