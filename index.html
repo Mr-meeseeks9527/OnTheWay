@@ -958,7 +958,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             const center = getCenterPoint(allPoints);
 
             const markers = [
-                ...memberPoints.map((item) => `small,0x2563EB,${item.index}:${item.point.join(',')}`)
+                ...memberPoints.map((item) => `large,0x2563EB,${item.index}:${item.point.join(',')}`)
             ];
 
             const params = new URLSearchParams({
@@ -1068,8 +1068,8 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
 
                     ${addresses.map((addr, i) => `
                         <div style="position: absolute; ${getMemberPosition(i, addresses.length)}; text-align: center;">
-                            <div style="width: 10px; height: 10px; border-radius: 999px; background: #2563EB; margin: 0 auto 4px;"></div>
-                            <div style="background: #2563EB; color: white; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; white-space: nowrap;">${i + 1}</div>
+                            <div style="width: 14px; height: 14px; border-radius: 999px; background: #2563EB; border: 2px solid #ffffff; margin: 0 auto 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></div>
+                            <div style="background: #2563EB; color: white; padding: 3px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${i + 1}</div>
                         </div>
                     `).join('')}
 
