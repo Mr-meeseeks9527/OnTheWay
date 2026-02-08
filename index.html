@@ -938,20 +938,6 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             const mapEl = document.getElementById('map');
             mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">正在加载高德静态地图...</div>';
 
-            const recommendationResults = await Promise.allSettled(
-                recommendations.map((item) => geocodeAddress(item.address, apiKey))
-            );
-            const recommendationPoints = recommendationResults
-                .map((result, idx) => {
-                    if (result.status !== 'fulfilled') return null;
-                    return { label: String.fromCharCode(65 + idx), point: result.value };
-                })
-                .filter(Boolean);
-
-            if (recommendationPoints.length === 0) {
-                throw new Error('推荐地点坐标解析失败');
-            }
-
             const memberGeocodeResults = await Promise.allSettled(
                 addresses.map((address) => geocodeAddress(address, apiKey))
             );
@@ -963,12 +949,16 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 })
                 .filter(Boolean);
 
-            const allPoints = [...recommendationPoints.map((item) => item.point), ...memberPoints.map((item) => item.point)];
+            // 最终地图只展示成员点位：3人就显示3个小点
+            if (memberPoints.length === 0) {
+                throw new Error('成员坐标解析失败');
+            }
+
+            const allPoints = memberPoints.map((item) => item.point);
             const center = getCenterPoint(allPoints);
 
             const markers = [
-                ...recommendationPoints.map((item) => `mid,0xDC2626,${item.label}:${item.point.join(',')}`),
-                ...memberPoints.map((item) => `mid,0x4F46E5,${item.index}:${item.point.join(',')}`)
+                ...memberPoints.map((item) => `small,0x2563EB,${item.index}:${item.point.join(',')}`)
             ];
 
             const params = new URLSearchParams({
@@ -1076,16 +1066,10 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                         border-radius: 8px;
                     "></div>
 
-                    <!-- 模拟地图标记 -->
-                    <div style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-                        <div style="font-size: 2.5rem;">📍</div>
-                        <div style="background: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap;">${recommendation.name}</div>
-                    </div>
-
                     ${addresses.map((addr, i) => `
                         <div style="position: absolute; ${getMemberPosition(i, addresses.length)}; text-align: center;">
-                            <div style="font-size: 1.5rem;">👤</div>
-                            <div style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap;">成员${i + 1}</div>
+                            <div style="width: 10px; height: 10px; border-radius: 999px; background: #2563EB; margin: 0 auto 4px;"></div>
+                            <div style="background: #2563EB; color: white; padding: 2px 8px; border-radius: 999px; font-size: 0.75rem; white-space: nowrap;">${i + 1}</div>
                         </div>
                     `).join('')}
 
