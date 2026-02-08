@@ -438,6 +438,12 @@
     </div>
 
     <script>
+        // 可选：本地开发时可直接把 Key 写在这里（不要提交真实 Key）
+        const DEFAULT_CONFIG = {
+            deepseekKey: '',
+            amapKey: ''
+        };
+
         // 初始化成员列表
         let memberCount = 0;
         const MIN_MEMBERS = 3;
@@ -529,7 +535,7 @@
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('resultSection').classList.remove('show');
 
-            const deepseekKey = document.getElementById('deepseekKey').value.trim();
+            const deepseekKey = (document.getElementById('deepseekKey').value.trim() || DEFAULT_CONFIG.deepseekKey).trim();
 
             try {
                 let recommendation;
@@ -690,7 +696,7 @@ ${preference ? `口味偏好：${preference}` : ''}
         }
 
         async function initMap(recommendation, addresses) {
-            const amapKey = document.getElementById('amapKey').value.trim();
+            const amapKey = (document.getElementById('amapKey').value.trim() || DEFAULT_CONFIG.amapKey).trim();
 
             if (!amapKey) {
                 renderMockMap(recommendation, addresses);
@@ -698,74 +704,88 @@ ${preference ? `口味偏好：${preference}` : ''}
             }
 
             try {
-                await loadAmapScript(amapKey);
-                await renderRealMap(recommendation, addresses);
+                await renderStaticMap(recommendation, addresses, amapKey);
             } catch (error) {
-                console.error('AMap init error:', error);
-                showError('高德地图加载失败，已切换演示模式地图。');
+                console.error('AMap static map error:', error);
+                showError('高德静态地图加载失败，已切换演示模式地图。');
                 renderMockMap(recommendation, addresses);
             }
         }
 
-        async function renderRealMap(recommendation, addresses) {
-            const map = new AMap.Map('map', {
-                zoom: 11,
-                center: [116.397428, 39.90923] // 默认北京中心
-            });
+        async function renderStaticMap(recommendation, addresses, apiKey) {
+            const mapEl = document.getElementById('map');
+            mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">正在加载高德静态地图...</div>';
 
-            const geocoder = new AMap.Geocoder({ city: '全国' });
-            const overlays = [];
-
-            const geocode = (address) => new Promise((resolve, reject) => {
-                geocoder.getLocation(address, (status, result) => {
-                    if (status === 'complete' && result.geocodes && result.geocodes.length > 0) {
-                        const loc = result.geocodes[0].location;
-                        resolve([loc.lng, loc.lat]);
-                        return;
-                    }
-                    reject(new Error(`地址解析失败: ${address}`));
-                });
-            });
-
-            try {
-                const meetingPoint = await geocode(recommendation.address);
-                const meetingMarker = new AMap.Marker({
-                    map,
-                    position: meetingPoint,
-                    title: recommendation.name
-                });
-                meetingMarker.setLabel({
-                    direction: 'top',
-                    content: `<div style="padding:2px 8px;background:#ef4444;color:#fff;border-radius:4px;font-size:12px;">推荐点</div>`
-                });
-                overlays.push(meetingMarker);
-            } catch (error) {
-                console.warn(error.message);
-            }
-
-            const memberResults = await Promise.allSettled(
-                addresses.map((address) => geocode(address))
+            const meetingPoint = await geocodeAddress(recommendation.address, apiKey);
+            const memberGeocodeResults = await Promise.allSettled(
+                addresses.map((address) => geocodeAddress(address, apiKey))
             );
 
-            memberResults.forEach((result, idx) => {
-                if (result.status !== 'fulfilled') {
-                    return;
-                }
-                const marker = new AMap.Marker({
-                    map,
-                    position: result.value,
-                    title: `成员${idx + 1}`
-                });
-                marker.setLabel({
-                    direction: 'right',
-                    content: `<div style="padding:2px 6px;background:#4f46e5;color:#fff;border-radius:4px;font-size:12px;">成员${idx + 1}</div>`
-                });
-                overlays.push(marker);
+            const memberPoints = memberGeocodeResults
+                .map((result, index) => {
+                    if (result.status !== 'fulfilled') return null;
+                    return { index: index + 1, point: result.value };
+                })
+                .filter(Boolean);
+
+            const allPoints = [meetingPoint, ...memberPoints.map((item) => item.point)];
+            const center = getCenterPoint(allPoints);
+
+            const markers = [
+                `mid,0xDC2626,A:${meetingPoint.join(',')}`,
+                ...memberPoints.map((item) => `mid,0x4F46E5,${item.index}:${item.point.join(',')}`)
+            ];
+
+            const params = new URLSearchParams({
+                key: apiKey,
+                location: center.join(','),
+                zoom: '11',
+                size: '900*400',
+                scale: '2',
+                markers: markers.join('|')
             });
 
-            if (overlays.length > 0) {
-                map.setFitView(overlays, false, [40, 40, 40, 40]);
+            const staticMapUrl = `https://restapi.amap.com/v3/staticmap?${params.toString()}`;
+
+            mapEl.innerHTML = `
+                <img
+                    src="${staticMapUrl}"
+                    alt="高德静态地图"
+                    style="width:100%;height:100%;object-fit:cover;border-radius:12px;"
+                />
+            `;
+        }
+
+        async function geocodeAddress(address, apiKey) {
+            const url = `https://restapi.amap.com/v3/geocode/geo?key=${encodeURIComponent(apiKey)}&address=${encodeURIComponent(address)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`地理编码请求失败: ${response.status}`);
             }
+            const data = await response.json();
+            if (data.status !== '1' || !Array.isArray(data.geocodes) || data.geocodes.length === 0) {
+                throw new Error(`地址解析失败: ${address}`);
+            }
+            const [lng, lat] = String(data.geocodes[0].location).split(',').map(Number);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+                throw new Error(`坐标无效: ${address}`);
+            }
+            return [lng, lat];
+        }
+
+        function getCenterPoint(points) {
+            if (!points || points.length === 0) {
+                return [116.397428, 39.90923];
+            }
+            const sum = points.reduce((acc, point) => {
+                acc.lng += point[0];
+                acc.lat += point[1];
+                return acc;
+            }, { lng: 0, lat: 0 });
+            return [
+                Number((sum.lng / points.length).toFixed(6)),
+                Number((sum.lat / points.length).toFixed(6))
+            ];
         }
 
         function renderMockMap(recommendation, addresses) {
@@ -812,7 +832,7 @@ ${preference ? `口味偏好：${preference}` : ''}
                         <div style="font-size: 3rem; margin-bottom: 10px;">🗺️</div>
                         <div style="font-weight: 600; margin-bottom: 5px;">演示模式</div>
                         <div style="font-size: 0.9rem; opacity: 0.8;">
-                            配置高德 API Key 可查看真实地图
+                            配置高德 Web 服务 Key 可查看真实地图
                         </div>
                     </div>
                 </div>
@@ -833,42 +853,16 @@ ${preference ? `口味偏好：${preference}` : ''}
             return positions[index] || positions[0];
         }
 
-        // 加载高德地图 API（如果有 key）
-        let amapLoadingPromise = null;
-        function loadAmapScript(amapKey) {
-            if (window.AMap) {
-                return Promise.resolve();
-            }
-            if (amapLoadingPromise) {
-                return amapLoadingPromise;
-            }
-            amapLoadingPromise = new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(amapKey)}&plugin=AMap.Geocoder`;
-                script.async = true;
-                script.defer = true;
-                script.onload = () => resolve();
-                script.onerror = () => reject(new Error('高德地图脚本加载失败'));
-                document.head.appendChild(script);
-            });
-            return amapLoadingPromise;
-        }
-
         function persistApiKeys() {
             localStorage.setItem('ontheway_deepseek_key', document.getElementById('deepseekKey').value.trim());
             localStorage.setItem('ontheway_amap_key', document.getElementById('amapKey').value.trim());
         }
 
         function restoreApiKeys() {
-            const deepseekKey = localStorage.getItem('ontheway_deepseek_key') || '';
-            const amapKey = localStorage.getItem('ontheway_amap_key') || '';
+            const deepseekKey = localStorage.getItem('ontheway_deepseek_key') || DEFAULT_CONFIG.deepseekKey;
+            const amapKey = localStorage.getItem('ontheway_amap_key') || DEFAULT_CONFIG.amapKey;
             document.getElementById('deepseekKey').value = deepseekKey;
             document.getElementById('amapKey').value = amapKey;
-            if (amapKey) {
-                loadAmapScript(amapKey).catch(() => {
-                    console.warn('高德地图预加载失败');
-                });
-            }
         }
 
         // 初始化
@@ -879,12 +873,6 @@ ${preference ? `口味偏好：${preference}` : ''}
         document.getElementById('deepseekKey').addEventListener('change', persistApiKeys);
         document.getElementById('amapKey').addEventListener('change', () => {
             persistApiKeys();
-            const amapKey = document.getElementById('amapKey').value.trim();
-            if (amapKey) {
-                loadAmapScript(amapKey).catch(() => {
-                    showError('高德 API Key 无效或地图加载失败');
-                });
-            }
         });
     </script>
 </body>
