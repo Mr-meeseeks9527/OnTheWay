@@ -441,6 +441,72 @@
             word-break: break-all;
         }
 
+        .map-venue-list {
+            position: absolute;
+            left: 8px;
+            top: 8px;
+            width: min(78%, 380px);
+            max-height: 48%;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 8px 10px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .map-venue-list h4 {
+            margin: 0 0 6px;
+            font-size: 0.82rem;
+            color: #0f172a;
+        }
+
+        .map-venue-list ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .map-venue-list li {
+            margin-bottom: 4px;
+            color: #334155;
+            font-size: 0.8rem;
+            line-height: 1.35;
+            word-break: break-all;
+        }
+
+        .map-route-list {
+            position: absolute;
+            left: 8px;
+            bottom: 8px;
+            width: min(78%, 420px);
+            max-height: 45%;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 8px 10px;
+            box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+        }
+
+        .map-route-list h4 {
+            margin: 0 0 6px;
+            font-size: 0.82rem;
+            color: #0f172a;
+        }
+
+        .map-route-list ul {
+            margin: 0;
+            padding-left: 16px;
+        }
+
+        .map-route-list li {
+            margin-bottom: 4px;
+            color: #334155;
+            font-size: 0.8rem;
+            line-height: 1.35;
+            word-break: break-all;
+        }
+
         @media (min-width: 860px) {
             .header h1 {
                 font-size: 2.3rem;
@@ -496,6 +562,29 @@
             }
 
             .map-address-list li {
+                font-size: 0.76rem;
+            }
+
+            .map-venue-list,
+            .map-route-list {
+                width: calc(100% - 16px);
+                left: 8px;
+                right: 8px;
+                padding: 7px 8px;
+            }
+
+            .map-venue-list {
+                top: 8px;
+                max-height: 36%;
+            }
+
+            .map-route-list {
+                bottom: 8px;
+                max-height: 36%;
+            }
+
+            .map-venue-list li,
+            .map-route-list li {
                 font-size: 0.76rem;
             }
         }
@@ -921,7 +1010,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             const amapKey = (document.getElementById('amapKey').value.trim() || DEFAULT_CONFIG.amapKey).trim();
 
             if (!amapKey) {
-                renderMockMap(recommendations[0], addresses);
+                renderMockMap(recommendations, addresses);
                 return;
             }
 
@@ -930,13 +1019,29 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             } catch (error) {
                 console.error('AMap static map error:', error);
                 showError('高德静态地图加载失败，已切换演示模式地图。');
-                renderMockMap(recommendations[0], addresses);
+                renderMockMap(recommendations, addresses);
             }
         }
 
         async function renderStaticMap(recommendations, addresses, apiKey) {
             const mapEl = document.getElementById('map');
             mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">正在加载高德静态地图...</div>';
+
+            const recommendationGeocodeResults = await Promise.allSettled(
+                recommendations.map((item) => geocodeAddress(item.address, apiKey))
+            );
+            const recommendationPoints = recommendationGeocodeResults
+                .map((result, index) => {
+                    if (result.status !== 'fulfilled') return null;
+                    return {
+                        index: index + 1,
+                        label: String.fromCharCode(65 + index),
+                        name: recommendations[index].name,
+                        address: recommendations[index].address,
+                        point: result.value
+                    };
+                })
+                .filter(Boolean);
 
             const memberGeocodeResults = await Promise.allSettled(
                 addresses.map((address) => geocodeAddress(address, apiKey))
@@ -949,15 +1054,18 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 })
                 .filter(Boolean);
 
-            // 最终地图只展示成员点位：3人就显示3个小点
             if (memberPoints.length === 0) {
                 throw new Error('成员坐标解析失败');
             }
 
-            const allPoints = memberPoints.map((item) => item.point);
+            const allPoints = [
+                ...memberPoints.map((item) => item.point),
+                ...recommendationPoints.map((item) => item.point)
+            ];
             const center = getCenterPoint(allPoints);
 
             const markers = [
+                ...recommendationPoints.map((item) => `large,0xDC2626,${item.label}:${item.point.join(',')}`),
                 ...memberPoints.map((item) => `large,0x2563EB,${item.index}:${item.point.join(',')}`)
             ];
 
@@ -971,6 +1079,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             });
 
             const staticMapUrl = `https://restapi.amap.com/v3/staticmap?${params.toString()}`;
+            const routeDurations = await buildRouteDurationMatrix(memberPoints, recommendationPoints, apiKey);
 
             mapEl.innerHTML = `
                 <div class="map-shell">
@@ -979,7 +1088,9 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                         alt="高德静态地图"
                         class="map-image"
                     />
+                    ${getMeetingOverlayHtml(recommendationPoints)}
                     ${getAddressOverlayHtml(addresses)}
+                    ${getRouteOverlayHtml(routeDurations)}
                 </div>
             `;
         }
@@ -1039,7 +1150,111 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             `;
         }
 
-        function renderMockMap(recommendation, addresses) {
+        function getMeetingOverlayHtml(recommendationPoints) {
+            if (!recommendationPoints || recommendationPoints.length === 0) {
+                return '';
+            }
+            return `
+                <div class="map-venue-list">
+                    <h4>聚会地点</h4>
+                    <ul>
+                        ${recommendationPoints.map((item) => `<li>${item.label}. ${escapeHtml(item.name)}（${escapeHtml(item.address)}）</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        async function buildRouteDurationMatrix(memberPoints, recommendationPoints, apiKey) {
+            if (!memberPoints || memberPoints.length === 0 || !recommendationPoints || recommendationPoints.length === 0) {
+                return [];
+            }
+
+            const tasks = [];
+            memberPoints.forEach((member) => {
+                recommendationPoints.forEach((venue) => {
+                    tasks.push({
+                        memberIndex: member.index,
+                        venueLabel: venue.label,
+                        promise: getDrivingDurationMinutes(member.point, venue.point, apiKey)
+                    });
+                });
+            });
+
+            const settled = await Promise.allSettled(tasks.map((task) => task.promise));
+            const mapByMember = {};
+
+            tasks.forEach((task, idx) => {
+                const result = settled[idx];
+                if (!mapByMember[task.memberIndex]) {
+                    mapByMember[task.memberIndex] = {};
+                }
+                mapByMember[task.memberIndex][task.venueLabel] =
+                    result.status === 'fulfilled' ? result.value : null;
+            });
+
+            return Object.keys(mapByMember)
+                .map((key) => Number(key))
+                .sort((a, b) => a - b)
+                .map((memberIndex) => ({
+                    memberIndex,
+                    durations: mapByMember[memberIndex]
+                }));
+        }
+
+        async function getDrivingDurationMinutes(originPoint, destinationPoint, apiKey) {
+            const origin = originPoint.join(',');
+            const destination = destinationPoint.join(',');
+            const url = `https://restapi.amap.com/v3/direction/driving?key=${encodeURIComponent(apiKey)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&extensions=base&strategy=0`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`路径规划请求失败: ${response.status}`);
+            }
+            const data = await response.json();
+            if (data.status !== '1' || !data.route || !Array.isArray(data.route.paths) || data.route.paths.length === 0) {
+                return null;
+            }
+            const seconds = Number(data.route.paths[0].duration);
+            if (!Number.isFinite(seconds) || seconds <= 0) {
+                return null;
+            }
+            return Math.max(1, Math.round(seconds / 60));
+        }
+
+        function getRouteOverlayHtml(routeRows) {
+            if (!routeRows || routeRows.length === 0) {
+                return '';
+            }
+            return `
+                <div class="map-route-list">
+                    <h4>成员到地点路径时长（驾车估算）</h4>
+                    <ul>
+                        ${routeRows.map((row) => {
+                            const labels = Object.keys(row.durations).sort();
+                            const text = labels
+                                .map((label) => `${label}: ${row.durations[label] == null ? '--' : `${row.durations[label]} 分钟`}`)
+                                .join(' | ');
+                            return `<li>成员${row.memberIndex} → ${text}</li>`;
+                        }).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function renderMockMap(recommendations, addresses) {
+            const recommendationPoints = recommendations.slice(0, 3).map((item, idx) => ({
+                label: String.fromCharCode(65 + idx),
+                name: item.name,
+                address: item.address
+            }));
+            const mockRouteRows = addresses.map((_, index) => {
+                const memberIndex = index + 1;
+                const durations = {};
+                recommendationPoints.forEach((point, idx) => {
+                    durations[point.label] = 12 + memberIndex * 4 + idx * 3;
+                });
+                return { memberIndex, durations };
+            });
+
             const mapEl = document.getElementById('map');
             mapEl.innerHTML = `
                 <div class="map-shell" style="
@@ -1073,6 +1288,13 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                         </div>
                     `).join('')}
 
+                    ${recommendationPoints.map((point, idx) => `
+                        <div style="position: absolute; ${getMeetingPosition(idx)}; text-align: center;">
+                            <div style="width: 14px; height: 14px; border-radius: 999px; background: #DC2626; border: 2px solid #ffffff; margin: 0 auto 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></div>
+                            <div style="background: #DC2626; color: white; padding: 3px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${point.label}</div>
+                        </div>
+                    `).join('')}
+
                     <div style="text-align: center; z-index: 1; background: rgba(255,255,255,0.9); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🗺️</div>
                         <div style="font-weight: 600; margin-bottom: 5px;">演示模式</div>
@@ -1080,9 +1302,20 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                             配置高德 Web 服务 Key 可查看真实地图
                         </div>
                     </div>
+                    ${getMeetingOverlayHtml(recommendationPoints)}
                     ${getAddressOverlayHtml(addresses)}
+                    ${getRouteOverlayHtml(mockRouteRows)}
                 </div>
             `;
+        }
+
+        function getMeetingPosition(index) {
+            const positions = [
+                'top: 22%; left: 46%;',
+                'top: 30%; left: 62%;',
+                'top: 38%; left: 36%;'
+            ];
+            return positions[index] || positions[0];
         }
 
         function getMemberPosition(index, total) {
