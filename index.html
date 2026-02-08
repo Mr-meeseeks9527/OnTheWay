@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>碰个头 - 智能推荐</title>
+    <title>纰颁釜澶?- 鏅鸿兘鎺ㄨ崘</title>
     <style>
         :root {
             --bg: #f4f6f8;
@@ -385,6 +385,29 @@
             line-height: 1.48;
         }
 
+        .route-controls {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface-soft);
+        }
+
+        .route-control-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .route-control-item label {
+            margin-bottom: 0;
+            font-size: 0.84rem;
+            color: #475569;
+        }
+
         #map {
             width: 100%;
             height: 250px;
@@ -523,6 +546,10 @@
             #map {
                 height: 380px;
             }
+
+            .route-controls {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 600px) {
@@ -593,71 +620,84 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>碰个头</h1>
-            <p>输入出发地，智能推荐最佳聚会地点</p>
+            <h1>纰颁釜澶?/h1>
+            <p>杈撳叆鍑哄彂鍦帮紝鏅鸿兘鎺ㄨ崘鏈€浣宠仛浼氬湴鐐?/p>
         </div>
 
         <div class="card">
-            <h2 class="card-title">聚会信息</h2>
+            <h2 class="card-title">鑱氫細淇℃伅</h2>
 
             <div class="error-message" id="errorMessage"></div>
 
             <div class="api-section">
                 <div class="api-toggle" onclick="toggleApiInputs()">
-                    <span>▶</span>
-                    <span>配置 API Keys（可选，默认使用演示模式）</span>
+                    <span>鈻?/span>
+                    <span>閰嶇疆 API Keys锛堝彲閫夛紝榛樿浣跨敤婕旂ず妯″紡锛?/span>
                 </div>
                 <div class="api-inputs" id="apiInputs">
                     <div class="form-group">
                         <label>DeepSeek API Key</label>
-                        <input type="password" id="deepseekKey" placeholder="输入你的 DeepSeek API Key">
-                        <div class="hint">用于智能推荐碰面地点，可在 <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a> 获取</div>
+                        <input type="password" id="deepseekKey" placeholder="杈撳叆浣犵殑 DeepSeek API Key">
+                        <div class="hint">鐢ㄤ簬鏅鸿兘鎺ㄨ崘纰伴潰鍦扮偣锛屽彲鍦?<a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a> 鑾峰彇</div>
                     </div>
                     <div class="form-group">
-                        <label>高德地图 API Key</label>
-                        <input type="password" id="amapKey" placeholder="输入你的高德 Web API Key">
-                        <div class="hint">用于地图展示，可在 <a href="https://console.amap.com/dev/key/app" target="_blank">高德开放平台</a> 获取</div>
+                        <label>楂樺痉鍦板浘 API Key</label>
+                        <input type="password" id="amapKey" placeholder="杈撳叆浣犵殑楂樺痉 Web API Key">
+                        <div class="hint">鐢ㄤ簬鍦板浘灞曠ず锛屽彲鍦?<a href="https://console.amap.com/dev/key/app" target="_blank">楂樺痉寮€鏀惧钩鍙?/a> 鑾峰彇</div>
                     </div>
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>聚会时间</label>
+                    <label>鑱氫細鏃堕棿</label>
                     <input type="time" id="meetingTime" value="19:00">
                 </div>
             </div>
 
             <div class="form-group">
-                <label>成员信息（出发地 + 口味，至少3人）</label>
+                <label>鎴愬憳淇℃伅锛堝嚭鍙戝湴 + 鍙ｅ懗锛岃嚦灏?浜猴級</label>
                 <div class="member-list" id="memberList">
-                    <!-- 动态生成成员输入行 -->
+                    <!-- 鍔ㄦ€佺敓鎴愭垚鍛樿緭鍏ヨ -->
                 </div>
-                <button class="btn-add" onclick="addMember()">+ 添加成员</button>
+                <button class="btn-add" onclick="addMember()">+ 娣诲姞鎴愬憳</button>
             </div>
 
             <button class="btn-primary" id="generateBtn" onclick="generateMeetingPoint()">
-                生成碰面点
-            </button>
+                鐢熸垚纰伴潰鐐?            </button>
 
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <p>正在分析最佳碰面地点...</p>
+                <p>姝ｅ湪鍒嗘瀽鏈€浣崇闈㈠湴鐐?..</p>
             </div>
         </div>
 
         <div class="card result-section" id="resultSection">
-            <h2 class="card-title">推荐结果</h2>
+            <h2 class="card-title">鎺ㄨ崘缁撴灉</h2>
 
             <div class="members-summary" id="membersSummary"></div>
 
             <div class="recommendation-card">
-                <h3 id="venueName">推荐地点名称</h3>
-                <div class="address" id="venueAddress">地址信息</div>
-                <div class="reason" id="venueReason">推荐理由</div>
+                <h3 id="venueName">鎺ㄨ崘鍦扮偣鍚嶇О</h3>
+                <div class="address" id="venueAddress">鍦板潃淇℃伅</div>
+                <div class="reason" id="venueReason">鎺ㄨ崘鐞嗙敱</div>
             </div>
             <div class="recommendation-list" id="alternativeList"></div>
-
+            <div class="route-controls">
+                <div class="route-control-item">
+                    <label for="finalVenueSelect">鏈€缁堣仛浼氬湴鐐?/label>
+                    <select id="finalVenueSelect"></select>
+                </div>
+                <div class="route-control-item">
+                    <label for="travelModeSelect">鍑鸿鏂瑰紡</label>
+                    <select id="travelModeSelect">
+                        <option value="driving">椹捐溅</option>
+                        <option value="transit">鍏氦</option>
+                        <option value="walking">姝ヨ</option>
+                        <option value="cycling">楠戣</option>
+                    </select>
+                </div>
+            </div>
             <div id="map"></div>
         </div>
     </div>
@@ -673,8 +713,21 @@
         let memberCount = 0;
         const MIN_MEMBERS = 3;
         const CUISINE_OPTIONS = ['中餐', '日料', '韩餐', '西餐', '火锅', '烧烤', '咖啡厅', '酒吧'];
+        const ROUTE_MODE_LABELS = {
+            driving: '驾车',
+            transit: '公交',
+            walking: '步行',
+            cycling: '骑行'
+        };
+        const APP_STATE = {
+            recommendations: [],
+            members: [],
+            selectedVenueLabel: 'A',
+            selectedMode: 'driving'
+        };
+        const geocodeCache = new Map();
 
-        // 默认示例地址
+        // 榛樿绀轰緥鍦板潃
         const EXAMPLE_ADDRESSES = [
             '北京市朝阳区三里屯',
             '北京市海淀区中关村',
@@ -682,16 +735,17 @@
         ];
 
         function init() {
-            // 添加初始成员
+            // 娣诲姞鍒濆鎴愬憳
             for (let i = 0; i < MIN_MEMBERS; i++) {
                 addMember(EXAMPLE_ADDRESSES[i] || '', '');
             }
+            initRouteControls();
         }
 
         function addMember(defaultValue = '', defaultPreference = '') {
             memberCount++;
             const memberList = document.getElementById('memberList');
-            const preferenceOptionsHtml = ['<option value="">口味不限</option>']
+            const preferenceOptionsHtml = ['<option value="">鍙ｅ懗涓嶉檺</option>']
                 .concat(
                     CUISINE_OPTIONS.map((item) => (
                         `<option value="${item}" ${defaultPreference === item ? 'selected' : ''}>${item}</option>`
@@ -704,16 +758,16 @@
                 <div class="member-index">${memberList.children.length + 1}</div>
                 <div class="member-fields">
                     <input type="text"
-                           placeholder="输入出发地地址"
+                           placeholder="杈撳叆鍑哄彂鍦板湴鍧€"
                            value="${defaultValue}"
                            class="member-input"
                            required>
-                    <select class="member-preference" aria-label="成员口味偏好">
+                    <select class="member-preference" aria-label="鎴愬憳鍙ｅ懗鍋忓ソ">
                         ${preferenceOptionsHtml}
                     </select>
                 </div>
                 ${memberList.children.length >= MIN_MEMBERS ? `
-                    <button class="btn-remove" onclick="removeMember(${memberCount})" title="移除">×</button>
+                    <button class="btn-remove" onclick="removeMember(${memberCount})" title="绉婚櫎">脳</button>
                 ` : ''}
             `;
             memberList.appendChild(row);
@@ -755,7 +809,7 @@
         }
 
         async function generateMeetingPoint() {
-            // 收集数据
+            // 鏀堕泦鏁版嵁
             const time = document.getElementById('meetingTime').value;
             const rows = Array.from(document.querySelectorAll('.member-row'));
             const members = rows.map((row, idx) => {
@@ -764,18 +818,18 @@
                 return {
                     id: idx + 1,
                     address,
-                    preference: preference || '口味不限'
+                    preference: preference || '鍙ｅ懗涓嶉檺'
                 };
             }).filter((item) => item.address);
             const addresses = members.map((item) => item.address);
 
-            // 验证
+            // 楠岃瘉
             if (members.length < MIN_MEMBERS) {
-                showError(`请至少输入 ${MIN_MEMBERS} 个出发地`);
+                showError(`璇疯嚦灏戣緭鍏?${MIN_MEMBERS} 涓嚭鍙戝湴`);
                 return;
             }
 
-            // 显示加载状态
+            // 鏄剧ず鍔犺浇鐘舵€?            document.getElementById('loading').classList.add('show');
             document.getElementById('loading').classList.add('show');
             document.getElementById('generateBtn').disabled = true;
             document.getElementById('resultSection').classList.remove('show');
@@ -786,15 +840,15 @@
                 let recommendation;
 
                 if (deepseekKey) {
-                    // 调用 DeepSeek API
+                    // 璋冪敤 DeepSeek API
                     recommendation = await callDeepSeekAPI(members, time, deepseekKey);
                 } else {
-                    // 演示模式：模拟 API 调用
+                    // 婕旂ず妯″紡锛氭ā鎷?API 璋冪敤
                     await simulateAPICall();
                     recommendation = getMockRecommendations(members);
                 }
 
-                // 显示结果
+                // 鏄剧ず缁撴灉
                 displayResult(recommendation, members);
 
             } catch (error) {
@@ -807,33 +861,24 @@
         }
 
         async function callDeepSeekAPI(members, time, apiKey) {
-            const prompt = `请根据以下信息推荐3个聚会碰面地点：
+            const prompt = `请根据以下信息推荐 3 个聚会碰面地点：
 
-成员信息列表（每人出发地和口味偏好）：
+成员信息（每人出发地和口味偏好）：
 ${members.map((member) => `${member.id}. 出发地：${member.address}；口味偏好：${member.preference}`).join('\n')}
 
 聚会时间：${time}
 
-请推荐3个具体地点（餐厅、商场或其他适合聚会的场所），要求：
-1. 考虑地理位置的中心性，让大家出行都比较方便
-2. 重点考虑每位成员的口味偏好，尽量兼顾大多数
-3. 提供具体的地点名称和详细地址
-
-请按以下JSON格式返回：
+请返回 JSON：
 {
   "recommendations": [
-    {
-      "name": "地点名称",
-      "address": "详细地址",
-      "reason": "推荐理由（1-2句话）"
-    }
+    { "name": "地点名称", "address": "详细地址", "reason": "简短理由" }
   ]
 }`;
 
             const response = await fetch('https://api.deepseek.com/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${apiKey}`,
+                    Authorization: `Bearer ${apiKey}`,
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
@@ -843,7 +888,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                     messages: [
                         {
                             role: 'system',
-                            content: '你是聚会选址助手。请仅返回可解析的 JSON，不要输出 markdown 或额外说明。'
+                            content: '你是聚会选址助手。请只返回可解析 JSON。'
                         },
                         {
                             role: 'user',
@@ -864,7 +909,6 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 throw new Error('DeepSeek 返回内容为空');
             }
 
-            // 解析 JSON
             const cleaned = text
                 .replace(/^```json\s*/i, '')
                 .replace(/^```\s*/i, '')
@@ -872,13 +916,11 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 .trim();
 
             try {
-                const parsed = JSON.parse(cleaned);
-                return normalizeRecommendations(parsed);
+                return normalizeRecommendations(JSON.parse(cleaned));
             } catch {
                 const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
                 if (jsonMatch) {
-                    const parsed = JSON.parse(jsonMatch[0]);
-                    return normalizeRecommendations(parsed);
+                    return normalizeRecommendations(JSON.parse(jsonMatch[0]));
                 }
             }
 
@@ -886,7 +928,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
         }
 
         async function simulateAPICall() {
-            // 模拟网络延迟
+            // 妯℃嫙缃戠粶寤惰繜
             return new Promise(resolve => setTimeout(resolve, 1500));
         }
 
@@ -901,7 +943,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 .map((item) => ({
                     name: item?.name || '推荐碰面点',
                     address: item?.address || '北京市朝阳区',
-                    reason: item?.reason || '根据大家出发地综合推荐该地点。'
+                    reason: item?.reason || '根据成员出发地综合推荐该地点。'
                 }))
                 .filter((item) => item.address);
 
@@ -913,15 +955,15 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
 
         function getMockRecommendations(members) {
             const mockVenues = {
-                '中餐': { name: '全聚德烤鸭店', address: '北京市朝阳区建国路88号', reason: '经典中餐，位置便利，适合多人聚餐' },
-                '日料': { name: '元气寿司', address: '北京市朝阳区三里屯太古里', reason: '新鲜日料，环境优雅，交通便利' },
-                '韩餐': { name: '汉拿山韩式烤肉', address: '北京市海淀区五道口购物中心', reason: '正宗韩式烤肉，地理位置居中' },
-                '西餐': { name: 'Blue Frog 蓝蛙', address: '北京市朝阳区国贸商城', reason: '美式西餐，氛围轻松，适合朋友聚会' },
-                '火锅': { name: '海底捞火锅', address: '北京市东城区王府井大街', reason: '服务优质，位置中心，适合多人聚餐' },
-                '烧烤': { name: '很久以前羊肉串', address: '北京市朝阳区望京SOHO', reason: '人气烧烤，交通便利，氛围热闹' },
-                '咖啡厅': { name: '星巴克臻选', address: '北京市朝阳区三里屯太古里', reason: '环境舒适，位置便利，适合聊天聚会' },
-                '酒吧': { name: 'Migas Mercado', address: '北京市朝阳区三里屯那里花园', reason: '露台酒吧，氛围好，交通便利' },
-                '': { name: '西贝莜面村', address: '北京市朝阳区朝阳大悦城', reason: '位置中心，口味大众，适合多人聚餐' }
+                '中餐': { name: '国贸商圈中餐馆', address: '北京市朝阳区建国门外大街1号', reason: '中心位置，适合多人聚餐。' },
+                '日料': { name: '三里屯日料店', address: '北京市朝阳区三里屯路19号', reason: '日料选择丰富，环境适合小聚。' },
+                '韩餐': { name: '望京韩餐店', address: '北京市朝阳区望京街9号', reason: '口味偏韩餐时优先推荐。' },
+                '西餐': { name: '王府井西餐厅', address: '北京市东城区王府井大街138号', reason: '交通便利，适合约会和朋友聚会。' },
+                '火锅': { name: '王府井火锅店', address: '北京市东城区王府井大街200号', reason: '多人聚餐友好，容错率高。' },
+                '烧烤': { name: '三里屯烧烤店', address: '北京市朝阳区工体北路8号', reason: '氛围轻松，晚间聚会体验好。' },
+                '咖啡厅': { name: '国贸咖啡馆', address: '北京市朝阳区国贸商城', reason: '适合轻量社交和聊天。' },
+                '酒吧': { name: '工体酒吧', address: '北京市朝阳区工体西路6号', reason: '夜间社交场景匹配度高。' },
+                '': { name: '大悦城商圈', address: '北京市朝阳区朝阳北路101号', reason: '口味中性，交通便利。' }
             };
 
             const preferenceCount = {};
@@ -955,163 +997,6 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             return { recommendations: list.slice(0, 3) };
         }
 
-        function displayResult(recommendation, members) {
-            const recList = recommendation.recommendations || [];
-            if (recList.length === 0) {
-                throw new Error('没有可展示的推荐地点');
-            }
-            const primary = recList[0];
-            const addresses = members.map((item) => item.address);
-
-            // 显示成员汇总
-            const summaryEl = document.getElementById('membersSummary');
-            summaryEl.innerHTML = `
-                <div style="margin-bottom: 10px; font-weight: 500; color: #555;">聚会成员（${members.length}人）</div>
-                <div>
-                    ${members.map(member => `
-                        <span class="member-tag">
-                            <span class="dot"></span>
-                            ${member.address.length > 12 ? member.address.substring(0, 12) + '...' : member.address} · ${member.preference}
-                        </span>
-                    `).join('')}
-                </div>
-            `;
-
-            // 显示推荐结果
-            document.getElementById('venueName').textContent = primary.name;
-            document.getElementById('venueAddress').textContent = primary.address;
-            document.getElementById('venueReason').textContent = primary.reason;
-
-            const alternativeListEl = document.getElementById('alternativeList');
-            if (recList.length > 1) {
-                alternativeListEl.innerHTML = recList
-                    .slice(1)
-                    .map((item, idx) => `
-                        <div class="recommendation-item">
-                            <h4>备选 ${idx + 2}：${item.name}</h4>
-                            <p><strong>地址：</strong>${item.address}</p>
-                            <p><strong>理由：</strong>${item.reason}</p>
-                        </div>
-                    `).join('');
-            } else {
-                alternativeListEl.innerHTML = '';
-            }
-
-            document.getElementById('resultSection').classList.add('show');
-
-            // 初始化地图
-            initMap(recList, addresses);
-
-            // 滚动到结果区域
-            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        async function initMap(recommendations, addresses) {
-            const amapKey = (document.getElementById('amapKey').value.trim() || DEFAULT_CONFIG.amapKey).trim();
-
-            if (!amapKey) {
-                renderMockMap(recommendations, addresses);
-                return;
-            }
-
-            try {
-                await renderStaticMap(recommendations, addresses, amapKey);
-            } catch (error) {
-                console.error('AMap static map error:', error);
-                showError('高德静态地图加载失败，已切换演示模式地图。');
-                renderMockMap(recommendations, addresses);
-            }
-        }
-
-        async function renderStaticMap(recommendations, addresses, apiKey) {
-            const mapEl = document.getElementById('map');
-            mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">正在加载高德静态地图...</div>';
-
-            const recommendationGeocodeResults = await Promise.allSettled(
-                recommendations.map((item) => geocodeAddress(item.address, apiKey))
-            );
-            const recommendationPoints = recommendationGeocodeResults
-                .map((result, index) => {
-                    if (result.status !== 'fulfilled') return null;
-                    return {
-                        index: index + 1,
-                        label: String.fromCharCode(65 + index),
-                        name: recommendations[index].name,
-                        address: recommendations[index].address,
-                        point: result.value
-                    };
-                })
-                .filter(Boolean);
-
-            const memberGeocodeResults = await Promise.allSettled(
-                addresses.map((address) => geocodeAddress(address, apiKey))
-            );
-
-            const memberPoints = memberGeocodeResults
-                .map((result, index) => {
-                    if (result.status !== 'fulfilled') return null;
-                    return { index: index + 1, point: result.value };
-                })
-                .filter(Boolean);
-
-            if (memberPoints.length === 0) {
-                throw new Error('成员坐标解析失败');
-            }
-
-            const allPoints = [
-                ...memberPoints.map((item) => item.point),
-                ...recommendationPoints.map((item) => item.point)
-            ];
-            const center = getCenterPoint(allPoints);
-
-            const markers = [
-                ...recommendationPoints.map((item) => `large,0xDC2626,${item.label}:${item.point.join(',')}`),
-                ...memberPoints.map((item) => `large,0x2563EB,${item.index}:${item.point.join(',')}`)
-            ];
-
-            const params = new URLSearchParams({
-                key: apiKey,
-                location: center.join(','),
-                zoom: '11',
-                size: '900*400',
-                scale: '2',
-                markers: markers.join('|')
-            });
-
-            const staticMapUrl = `https://restapi.amap.com/v3/staticmap?${params.toString()}`;
-            const routeDurations = await buildRouteDurationMatrix(memberPoints, recommendationPoints, apiKey);
-
-            mapEl.innerHTML = `
-                <div class="map-shell">
-                    <img
-                        src="${staticMapUrl}"
-                        alt="高德静态地图"
-                        class="map-image"
-                    />
-                    ${getMeetingOverlayHtml(recommendationPoints)}
-                    ${getAddressOverlayHtml(addresses)}
-                    ${getRouteOverlayHtml(routeDurations)}
-                </div>
-            `;
-        }
-
-        async function geocodeAddress(address, apiKey) {
-            const url = `https://restapi.amap.com/v3/geocode/geo?key=${encodeURIComponent(apiKey)}&address=${encodeURIComponent(address)}`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`地理编码请求失败: ${response.status}`);
-            }
-            const data = await response.json();
-            if (data.status !== '1' || !Array.isArray(data.geocodes) || data.geocodes.length === 0) {
-                throw new Error(`地址解析失败: ${address}`);
-            }
-            const [lng, lat] = String(data.geocodes[0].location).split(',').map(Number);
-            if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
-                throw new Error(`坐标无效: ${address}`);
-            }
-            return [lng, lat];
-        }
-
         function getCenterPoint(points) {
             if (!points || points.length === 0) {
                 return [116.397428, 39.90923];
@@ -1136,13 +1021,308 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                 .replace(/'/g, '&#39;');
         }
 
+        function getMeetingPosition(index) {
+            const positions = [
+                'top: 22%; left: 46%;',
+                'top: 30%; left: 62%;',
+                'top: 38%; left: 36%;'
+            ];
+            return positions[index] || positions[0];
+        }
+
+        function getMemberPosition(index, total) {
+            const positions = [
+                'top: 20%; left: 20%;',
+                'top: 20%; right: 20%;',
+                'bottom: 30%; left: 15%;',
+                'bottom: 30%; right: 15%;',
+                'top: 50%; left: 10%;',
+                'top: 50%; right: 10%;',
+                'bottom: 20%; left: 30%;',
+                'bottom: 20%; right: 30%;'
+            ];
+            return positions[index] || positions[0];
+        }
+
+        function initRouteControls() {
+            const finalVenueSelect = document.getElementById('finalVenueSelect');
+            const travelModeSelect = document.getElementById('travelModeSelect');
+
+            if (finalVenueSelect && !finalVenueSelect.dataset.bound) {
+                finalVenueSelect.addEventListener('change', handleRouteConfigChange);
+                finalVenueSelect.dataset.bound = '1';
+            }
+            if (travelModeSelect && !travelModeSelect.dataset.bound) {
+                travelModeSelect.addEventListener('change', handleRouteConfigChange);
+                travelModeSelect.value = APP_STATE.selectedMode;
+                travelModeSelect.dataset.bound = '1';
+            }
+        }
+
+        function getRecommendationLabel(index) {
+            return String.fromCharCode(65 + index);
+        }
+
+        function displayResult(recommendation, members) {
+            const recList = (recommendation.recommendations || []).slice(0, 3);
+            if (recList.length === 0) {
+                throw new Error('娌℃湁鍙睍绀虹殑鎺ㄨ崘鍦扮偣');
+            }
+
+            APP_STATE.recommendations = recList;
+            APP_STATE.members = members.map((item) => ({ ...item }));
+            APP_STATE.selectedVenueLabel = getRecommendationLabel(0);
+            APP_STATE.selectedMode = document.getElementById('travelModeSelect')?.value || 'driving';
+
+            updateMembersSummary(members);
+            updateRouteControls(recList);
+            updateRecommendationCards(recList, APP_STATE.selectedVenueLabel);
+            document.getElementById('resultSection').classList.add('show');
+
+            refreshMapByCurrentSelection();
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateMembersSummary(members) {
+            const summaryEl = document.getElementById('membersSummary');
+            summaryEl.innerHTML = `
+                <div style="margin-bottom: 10px; font-weight: 500; color: #555;">鑱氫細鎴愬憳锛?{members.length}浜猴級</div>
+                <div>
+                    ${members.map((member) => `
+                        <span class="member-tag">
+                            <span class="dot"></span>
+                            ${escapeHtml(member.address.length > 12 ? `${member.address.substring(0, 12)}...` : member.address)} 路 ${escapeHtml(member.preference)}
+                        </span>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function updateRouteControls(recommendations) {
+            const finalVenueSelect = document.getElementById('finalVenueSelect');
+            const travelModeSelect = document.getElementById('travelModeSelect');
+            if (!finalVenueSelect || !travelModeSelect) return;
+
+            finalVenueSelect.innerHTML = recommendations
+                .map((item, index) => {
+                    const label = getRecommendationLabel(index);
+                    return `<option value="${label}" ${label === APP_STATE.selectedVenueLabel ? 'selected' : ''}>${label}. ${escapeHtml(item.name)}</option>`;
+                })
+                .join('');
+
+            travelModeSelect.value = APP_STATE.selectedMode;
+        }
+
+        function handleRouteConfigChange() {
+            if (!APP_STATE.recommendations || APP_STATE.recommendations.length === 0) {
+                return;
+            }
+
+            const finalVenueSelect = document.getElementById('finalVenueSelect');
+            const travelModeSelect = document.getElementById('travelModeSelect');
+            APP_STATE.selectedVenueLabel = finalVenueSelect?.value || getRecommendationLabel(0);
+            APP_STATE.selectedMode = travelModeSelect?.value || 'driving';
+
+            updateRecommendationCards(APP_STATE.recommendations, APP_STATE.selectedVenueLabel);
+            refreshMapByCurrentSelection();
+        }
+
+        function updateRecommendationCards(recommendations, selectedLabel) {
+            const selectedIndex = recommendations.findIndex((_, index) => getRecommendationLabel(index) === selectedLabel);
+            const safeIndex = selectedIndex >= 0 ? selectedIndex : 0;
+            const primary = recommendations[safeIndex];
+
+            document.getElementById('venueName').textContent = primary.name;
+            document.getElementById('venueAddress').textContent = primary.address;
+            document.getElementById('venueReason').textContent = primary.reason;
+
+            const alternativeListEl = document.getElementById('alternativeList');
+            const alternatives = recommendations
+                .map((item, index) => ({ item, label: getRecommendationLabel(index) }))
+                .filter((entry) => entry.label !== getRecommendationLabel(safeIndex));
+
+            if (alternatives.length > 0) {
+                alternativeListEl.innerHTML = alternatives
+                    .map((entry) => `
+                        <div class="recommendation-item">
+                            <h4>${entry.label}. ${escapeHtml(entry.item.name)}</h4>
+                            <p><strong>鍦板潃锛?/strong>${escapeHtml(entry.item.address)}</p>
+                            <p><strong>鐞嗙敱锛?/strong>${escapeHtml(entry.item.reason)}</p>
+                        </div>
+                    `)
+                    .join('');
+            } else {
+                alternativeListEl.innerHTML = '';
+            }
+        }
+
+        function refreshMapByCurrentSelection() {
+            const addresses = APP_STATE.members.map((item) => item.address);
+            initMap(APP_STATE.recommendations, addresses, {
+                selectedVenueLabel: APP_STATE.selectedVenueLabel,
+                mode: APP_STATE.selectedMode
+            });
+        }
+
+        async function initMap(recommendations, addresses, options = {}) {
+            const amapKey = (document.getElementById('amapKey').value.trim() || DEFAULT_CONFIG.amapKey).trim();
+
+            if (!amapKey) {
+                renderMockMap(recommendations, addresses, options);
+                return;
+            }
+
+            try {
+                await renderStaticMap(recommendations, addresses, amapKey, options);
+            } catch (error) {
+                console.error('AMap static map error:', error);
+                showError('高德静态地图加载失败，已切换演示模式地图。');
+                renderMockMap(recommendations, addresses, options);
+            }
+        }
+
+        async function renderStaticMap(recommendations, addresses, apiKey, options = {}) {
+            const mapEl = document.getElementById('map');
+            mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#64748b;">姝ｅ湪鍔犺浇楂樺痉闈欐€佸湴鍥?..</div>';
+
+            const selectedVenueLabel = options.selectedVenueLabel || getRecommendationLabel(0);
+            const mode = options.mode || 'driving';
+
+            const recommendationGeocodeResults = await Promise.allSettled(
+                recommendations.map((item) => geocodeAddress(item.address, apiKey))
+            );
+            const recommendationPoints = recommendationGeocodeResults
+                .map((result, index) => {
+                    if (result.status !== 'fulfilled') return null;
+                    return {
+                        index: index + 1,
+                        label: getRecommendationLabel(index),
+                        name: recommendations[index].name,
+                        address: recommendations[index].address,
+                        point: result.value.point,
+                        city: result.value.city,
+                        adcode: result.value.adcode
+                    };
+                })
+                .filter(Boolean);
+
+            if (recommendationPoints.length === 0) {
+                throw new Error('鎺ㄨ崘鍦扮偣鍧愭爣瑙ｆ瀽澶辫触');
+            }
+
+            const selectedVenue = recommendationPoints.find((item) => item.label === selectedVenueLabel) || recommendationPoints[0];
+            APP_STATE.selectedVenueLabel = selectedVenue.label;
+
+            const memberGeocodeResults = await Promise.allSettled(
+                addresses.map((address) => geocodeAddress(address, apiKey))
+            );
+            const memberPoints = memberGeocodeResults
+                .map((result, index) => {
+                    if (result.status !== 'fulfilled') return null;
+                    return {
+                        index: index + 1,
+                        point: result.value.point,
+                        city: result.value.city,
+                        adcode: result.value.adcode
+                    };
+                })
+                .filter(Boolean);
+
+            if (memberPoints.length === 0) {
+                throw new Error('鎴愬憳鍧愭爣瑙ｆ瀽澶辫触');
+            }
+
+            const allPoints = [
+                ...memberPoints.map((item) => item.point),
+                ...recommendationPoints.map((item) => item.point)
+            ];
+            const center = getCenterPoint(allPoints);
+
+            const markers = [
+                ...recommendationPoints.map((item) => {
+                    const color = item.label === selectedVenue.label ? '0xDC2626' : '0xF97316';
+                    return `large,${color},${item.label}:${item.point.join(',')}`;
+                }),
+                ...memberPoints.map((item) => `large,0x2563EB,${item.index}:${item.point.join(',')}`)
+            ];
+
+            const params = new URLSearchParams({
+                key: apiKey,
+                location: center.join(','),
+                zoom: '11',
+                size: '900*400',
+                scale: '2',
+                markers: markers.join('|')
+            });
+
+            const staticMapUrl = `https://restapi.amap.com/v3/staticmap?${params.toString()}`;
+            const routeDurations = await buildRouteDurations(memberPoints, selectedVenue, apiKey, mode);
+
+            mapEl.innerHTML = `
+                <div class="map-shell">
+                    <img
+                        src="${staticMapUrl}"
+                        alt="楂樺痉闈欐€佸湴鍥?
+                        class="map-image"
+                    />
+                    ${getMeetingOverlayHtml(recommendationPoints, selectedVenue.label)}
+                    ${getAddressOverlayHtml(addresses)}
+                    ${getRouteOverlayHtml(routeDurations, selectedVenue, mode)}
+                </div>
+            `;
+        }
+
+        async function geocodeAddress(address, apiKey) {
+            const cacheKey = `${apiKey}::${address}`;
+            if (geocodeCache.has(cacheKey)) {
+                return geocodeCache.get(cacheKey);
+            }
+
+            const url = `https://restapi.amap.com/v3/geocode/geo?key=${encodeURIComponent(apiKey)}&address=${encodeURIComponent(address)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`鍦扮悊缂栫爜璇锋眰澶辫触: ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.status !== '1' || !Array.isArray(data.geocodes) || data.geocodes.length === 0) {
+                throw new Error(`鍦板潃瑙ｆ瀽澶辫触: ${address}`);
+            }
+
+            const geocode = data.geocodes[0] || {};
+            const [lng, lat] = String(geocode.location || '').split(',').map(Number);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) {
+                throw new Error(`鍧愭爣鏃犳晥: ${address}`);
+            }
+
+            const normalized = {
+                point: [lng, lat],
+                adcode: String(geocode.adcode || '').trim(),
+                city: normalizeCityField(geocode.city, geocode.province)
+            };
+            geocodeCache.set(cacheKey, normalized);
+            return normalized;
+        }
+
+        function normalizeCityField(city, province) {
+            let cityValue = city;
+            if (Array.isArray(cityValue)) {
+                cityValue = cityValue[0] || '';
+            }
+            cityValue = String(cityValue || '').trim();
+            if (cityValue) return cityValue;
+
+            const provinceValue = String(province || '').trim();
+            return provinceValue;
+        }
+
         function getAddressOverlayHtml(addresses) {
             if (!addresses || addresses.length === 0) {
                 return '';
             }
             return `
                 <div class="map-address-list">
-                    <h4>成员地址</h4>
+                    <h4>鎴愬憳鍦板潃</h4>
                     <ul>
                         ${addresses.map((addr, index) => `<li>${index + 1}. ${escapeHtml(addr)}</li>`).join('')}
                     </ul>
@@ -1150,55 +1330,52 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             `;
         }
 
-        function getMeetingOverlayHtml(recommendationPoints) {
+        function getMeetingOverlayHtml(recommendationPoints, selectedLabel) {
             if (!recommendationPoints || recommendationPoints.length === 0) {
                 return '';
             }
             return `
                 <div class="map-venue-list">
-                    <h4>聚会地点</h4>
+                    <h4>鑱氫細鍦扮偣锛堝厛閫夋渶缁堝湴鐐癸級</h4>
                     <ul>
-                        ${recommendationPoints.map((item) => `<li>${item.label}. ${escapeHtml(item.name)}（${escapeHtml(item.address)}）</li>`).join('')}
+                        ${recommendationPoints.map((item) => `
+                            <li>
+                                ${item.label}. ${escapeHtml(item.name)}锛?{escapeHtml(item.address)}锛?                                ${item.label === selectedLabel ? '<strong> 路 宸查€?/strong>' : ''}
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `;
         }
 
-        async function buildRouteDurationMatrix(memberPoints, recommendationPoints, apiKey) {
-            if (!memberPoints || memberPoints.length === 0 || !recommendationPoints || recommendationPoints.length === 0) {
+        async function buildRouteDurations(memberPoints, selectedVenue, apiKey, mode) {
+            if (!memberPoints || memberPoints.length === 0 || !selectedVenue) {
                 return [];
             }
 
-            const tasks = [];
-            memberPoints.forEach((member) => {
-                recommendationPoints.forEach((venue) => {
-                    tasks.push({
-                        memberIndex: member.index,
-                        venueLabel: venue.label,
-                        promise: getDrivingDurationMinutes(member.point, venue.point, apiKey)
-                    });
-                });
-            });
+            const tasks = memberPoints.map((member) =>
+                getRouteDurationMinutes(member, selectedVenue, apiKey, mode)
+            );
+            const settled = await Promise.allSettled(tasks);
 
-            const settled = await Promise.allSettled(tasks.map((task) => task.promise));
-            const mapByMember = {};
+            return memberPoints.map((member, index) => ({
+                memberIndex: member.index,
+                minutes: settled[index].status === 'fulfilled' ? settled[index].value : null
+            }));
+        }
 
-            tasks.forEach((task, idx) => {
-                const result = settled[idx];
-                if (!mapByMember[task.memberIndex]) {
-                    mapByMember[task.memberIndex] = {};
-                }
-                mapByMember[task.memberIndex][task.venueLabel] =
-                    result.status === 'fulfilled' ? result.value : null;
-            });
-
-            return Object.keys(mapByMember)
-                .map((key) => Number(key))
-                .sort((a, b) => a - b)
-                .map((memberIndex) => ({
-                    memberIndex,
-                    durations: mapByMember[memberIndex]
-                }));
+        async function getRouteDurationMinutes(member, selectedVenue, apiKey, mode) {
+            if (mode === 'walking') {
+                return getWalkingDurationMinutes(member.point, selectedVenue.point, apiKey);
+            }
+            if (mode === 'cycling') {
+                return getCyclingDurationMinutes(member.point, selectedVenue.point, apiKey);
+            }
+            if (mode === 'transit') {
+                const city = selectedVenue.city || selectedVenue.adcode || member.city || member.adcode;
+                return getTransitDurationMinutes(member.point, selectedVenue.point, apiKey, city);
+            }
+            return getDrivingDurationMinutes(member.point, selectedVenue.point, apiKey);
         }
 
         async function getDrivingDurationMinutes(originPoint, destinationPoint, apiKey) {
@@ -1207,53 +1384,99 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
             const url = `https://restapi.amap.com/v3/direction/driving?key=${encodeURIComponent(apiKey)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&extensions=base&strategy=0`;
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error(`路径规划请求失败: ${response.status}`);
+                throw new Error(`璺緞瑙勫垝璇锋眰澶辫触: ${response.status}`);
             }
             const data = await response.json();
-            if (data.status !== '1' || !data.route || !Array.isArray(data.route.paths) || data.route.paths.length === 0) {
+            const seconds = Number(data?.route?.paths?.[0]?.duration);
+            return normalizeDurationMinutes(seconds);
+        }
+
+        async function getWalkingDurationMinutes(originPoint, destinationPoint, apiKey) {
+            const origin = originPoint.join(',');
+            const destination = destinationPoint.join(',');
+            const url = `https://restapi.amap.com/v3/direction/walking?key=${encodeURIComponent(apiKey)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`姝ヨ璺緞璇锋眰澶辫触: ${response.status}`);
+            }
+            const data = await response.json();
+            const seconds = Number(data?.route?.paths?.[0]?.duration);
+            return normalizeDurationMinutes(seconds);
+        }
+
+        async function getCyclingDurationMinutes(originPoint, destinationPoint, apiKey) {
+            const origin = originPoint.join(',');
+            const destination = destinationPoint.join(',');
+            const url = `https://restapi.amap.com/v4/direction/bicycling?key=${encodeURIComponent(apiKey)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`楠戣璺緞璇锋眰澶辫触: ${response.status}`);
+            }
+            const data = await response.json();
+            const seconds = Number(data?.data?.paths?.[0]?.duration);
+            return normalizeDurationMinutes(seconds);
+        }
+
+        async function getTransitDurationMinutes(originPoint, destinationPoint, apiKey, city) {
+            if (!city) {
                 return null;
             }
-            const seconds = Number(data.route.paths[0].duration);
+            const origin = originPoint.join(',');
+            const destination = destinationPoint.join(',');
+            const url = `https://restapi.amap.com/v3/direction/transit/integrated?key=${encodeURIComponent(apiKey)}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&city=${encodeURIComponent(city)}&cityd=${encodeURIComponent(city)}&strategy=0&nightflag=0&extensions=base`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`鍏氦璺緞璇锋眰澶辫触: ${response.status}`);
+            }
+            const data = await response.json();
+            const seconds = Number(data?.route?.transits?.[0]?.duration);
+            return normalizeDurationMinutes(seconds);
+        }
+
+        function normalizeDurationMinutes(seconds) {
             if (!Number.isFinite(seconds) || seconds <= 0) {
                 return null;
             }
             return Math.max(1, Math.round(seconds / 60));
         }
 
-        function getRouteOverlayHtml(routeRows) {
-            if (!routeRows || routeRows.length === 0) {
+        function getRouteOverlayHtml(routeRows, selectedVenue, mode) {
+            if (!routeRows || routeRows.length === 0 || !selectedVenue) {
                 return '';
             }
+            const modeLabel = ROUTE_MODE_LABELS[mode] || ROUTE_MODE_LABELS.driving;
             return `
                 <div class="map-route-list">
-                    <h4>成员到地点路径时长（驾车估算）</h4>
+                    <h4>鎴愬憳鍒?${selectedVenue.label} 鐨勬椂闀匡紙${modeLabel}锛?/h4>
                     <ul>
-                        ${routeRows.map((row) => {
-                            const labels = Object.keys(row.durations).sort();
-                            const text = labels
-                                .map((label) => `${label}: ${row.durations[label] == null ? '--' : `${row.durations[label]} 分钟`}`)
-                                .join(' | ');
-                            return `<li>成员${row.memberIndex} → ${text}</li>`;
-                        }).join('')}
+                        ${routeRows.map((row) => `
+                            <li>
+                                鎴愬憳${row.memberIndex} 鈫?${selectedVenue.label}. ${escapeHtml(selectedVenue.name)}锛?                                ${row.minutes == null ? '--' : `${row.minutes} 鍒嗛挓`}
+                            </li>
+                        `).join('')}
                     </ul>
                 </div>
             `;
         }
 
-        function renderMockMap(recommendations, addresses) {
+        function renderMockMap(recommendations, addresses, options = {}) {
             const recommendationPoints = recommendations.slice(0, 3).map((item, idx) => ({
-                label: String.fromCharCode(65 + idx),
+                index: idx + 1,
+                label: getRecommendationLabel(idx),
                 name: item.name,
                 address: item.address
             }));
-            const mockRouteRows = addresses.map((_, index) => {
-                const memberIndex = index + 1;
-                const durations = {};
-                recommendationPoints.forEach((point, idx) => {
-                    durations[point.label] = 12 + memberIndex * 4 + idx * 3;
-                });
-                return { memberIndex, durations };
-            });
+
+            const selectedVenueLabel = options.selectedVenueLabel || getRecommendationLabel(0);
+            const mode = options.mode || 'driving';
+            const selectedVenue = recommendationPoints.find((item) => item.label === selectedVenueLabel) || recommendationPoints[0];
+
+            const modeOffset = { driving: 0, transit: 6, walking: 20, cycling: 12 }[mode] || 0;
+            const venueOffset = (selectedVenue?.index || 1) * 2;
+            const mockRouteRows = addresses.map((_, index) => ({
+                memberIndex: index + 1,
+                minutes: 10 + (index + 1) * 4 + modeOffset + venueOffset
+            }));
 
             const mapEl = document.getElementById('map');
             mapEl.innerHTML = `
@@ -1281,19 +1504,24 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                         border-radius: 8px;
                     "></div>
 
-                    ${addresses.map((addr, i) => `
+                    ${addresses.map((_, i) => `
                         <div style="position: absolute; ${getMemberPosition(i, addresses.length)}; text-align: center;">
                             <div style="width: 14px; height: 14px; border-radius: 999px; background: #2563EB; border: 2px solid #ffffff; margin: 0 auto 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></div>
                             <div style="background: #2563EB; color: white; padding: 3px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${i + 1}</div>
                         </div>
                     `).join('')}
 
-                    ${recommendationPoints.map((point, idx) => `
-                        <div style="position: absolute; ${getMeetingPosition(idx)}; text-align: center;">
-                            <div style="width: 14px; height: 14px; border-radius: 999px; background: #DC2626; border: 2px solid #ffffff; margin: 0 auto 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></div>
-                            <div style="background: #DC2626; color: white; padding: 3px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${point.label}</div>
-                        </div>
-                    `).join('')}
+                    ${recommendationPoints.map((point, idx) => {
+                        const isSelected = point.label === selectedVenue.label;
+                        const dotColor = isSelected ? '#DC2626' : '#F97316';
+                        const dotSize = isSelected ? 18 : 14;
+                        return `
+                            <div style="position: absolute; ${getMeetingPosition(idx)}; text-align: center;">
+                                <div style="width: ${dotSize}px; height: ${dotSize}px; border-radius: 999px; background: ${dotColor}; border: 2px solid #ffffff; margin: 0 auto 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.25);"></div>
+                                <div style="background: ${dotColor}; color: white; padding: 3px 9px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; white-space: nowrap;">${point.label}</div>
+                            </div>
+                        `;
+                    }).join('')}
 
                     <div style="text-align: center; z-index: 1; background: rgba(255,255,255,0.9); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         <div style="font-size: 3rem; margin-bottom: 10px;">🗺️</div>
@@ -1302,34 +1530,11 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
                             配置高德 Web 服务 Key 可查看真实地图
                         </div>
                     </div>
-                    ${getMeetingOverlayHtml(recommendationPoints)}
+                    ${getMeetingOverlayHtml(recommendationPoints, selectedVenue.label)}
                     ${getAddressOverlayHtml(addresses)}
-                    ${getRouteOverlayHtml(mockRouteRows)}
+                    ${getRouteOverlayHtml(mockRouteRows, selectedVenue, mode)}
                 </div>
             `;
-        }
-
-        function getMeetingPosition(index) {
-            const positions = [
-                'top: 22%; left: 46%;',
-                'top: 30%; left: 62%;',
-                'top: 38%; left: 36%;'
-            ];
-            return positions[index] || positions[0];
-        }
-
-        function getMemberPosition(index, total) {
-            const positions = [
-                'top: 20%; left: 20%;',
-                'top: 20%; right: 20%;',
-                'bottom: 30%; left: 15%;',
-                'bottom: 30%; right: 15%;',
-                'top: 50%; left: 10%;',
-                'top: 50%; right: 10%;',
-                'bottom: 20%; left: 30%;',
-                'bottom: 20%; right: 30%;'
-            ];
-            return positions[index] || positions[0];
         }
 
         function persistApiKeys() {
@@ -1348,7 +1553,7 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
         init();
         restoreApiKeys();
 
-        // 监听 API Key 变化
+        // 鐩戝惉 API Key 鍙樺寲
         document.getElementById('deepseekKey').addEventListener('change', persistApiKeys);
         document.getElementById('amapKey').addEventListener('change', () => {
             persistApiKeys();
@@ -1356,3 +1561,6 @@ ${members.map((member) => `${member.id}. 出发地：${member.address}；口味�
     </script>
 </body>
 </html>
+
+
+
