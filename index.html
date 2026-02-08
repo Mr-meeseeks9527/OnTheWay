@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>聚会碰面点 - 智能推荐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        input[type="text"],
+        input[type="time"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .member-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .member-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .member-row input {
+            flex: 1;
+        }
+
+        .member-index {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .btn-remove {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove:hover {
+            background: #ff5252;
+            transform: scale(1.05);
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 结果展示区域 */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .recommendation-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-card .address {
+            opacity: 0.9;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .recommendation-card .reason {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        /* 加载状态 */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 错误提示 */
+        .error-message {
+            display: none;
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* API Key 输入区域 */
+        .api-section {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .api-toggle {
+            color: #667eea;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .api-inputs {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .api-inputs.show {
+            display: block;
+        }
+
+        .hint {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        /* 成员信息汇总 */
+        .members-summary {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .member-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .member-tag .dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>聚会碰面点</h1>
+            <p>输入出发地，智能推荐最佳聚会地点</p>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">聚会信息</h2>
+
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="api-section">
+                <div class="api-toggle" onclick="toggleApiInputs()">
+                    <span>▶</span>
+                    <span>配置 API Keys（可选，默认使用演示模式）</span>
+                </div>
+                <div class="api-inputs" id="apiInputs">
+                    <div class="form-group">
+                        <label>DeepSeek API Key</label>
+                        <input type="password" id="deepseekKey" placeholder="输入你的 DeepSeek API Key">
+                        <div class="hint">用于智能推荐碰面地点，可在 <a href="https://platform.deepseek.com/api_keys" target="_blank">DeepSeek Platform</a> 获取</div>
+                    </div>
+                    <div class="form-group">
+                        <label>高德地图 API Key</label>
+                        <input type="password" id="amapKey" placeholder="输入你的高德 Web API Key">
+                        <div class="hint">用于地图展示，可在 <a href="https://console.amap.com/dev/key/app" target="_blank">高德开放平台</a> 获取</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>聚会时间</label>
+                    <input type="time" id="meetingTime" value="19:00">
+                </div>
+                <div class="form-group">
+                    <label>口味偏好（可选）</label>
+                    <select id="preference">
+                        <option value="">无特殊偏好</option>
+                        <option value="中餐">中餐</option>
+                        <option value="日料">日料</option>
+                        <option value="韩餐">韩餐</option>
+                        <option value="西餐">西餐</option>
+                        <option value="火锅">火锅</option>
+                        <option value="烧烤">烧烤</option>
+                        <option value="咖啡厅">咖啡厅</option>
+                        <option value="酒吧">酒吧</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>成员出发地（至少3人）</label>
+                <div class="member-list" id="memberList">
+                    <!-- 动态生成成员输入行 -->
+                </div>
+                <button class="btn-add" onclick="addMember()">+ 添加成员</button>
+            </div>
+
+            <button class="btn-primary" id="generateBtn" onclick="generateMeetingPoint()">
+                生成碰面点
+            </button>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在分析最佳碰面地点...</p>
+            </div>
+        </div>
+
+        <div class="card result-section" id="resultSection">
+            <h2 class="card-title">推荐结果</h2>
+
+            <div class="members-summary" id="membersSummary"></div>
+
+            <div class="recommendation-card">
+                <h3 id="venueName">推荐地点名称</h3>
+                <div class="address" id="venueAddress">地址信息</div>
+                <div class="reason" id="venueReason">推荐理由</div>
+            </div>
+
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script>
+        // 初始化成员列表
+        let memberCount = 0;
+        const MIN_MEMBERS = 3;
+
+        // 默认示例地址
+        const EXAMPLE_ADDRESSES = [
+            '北京市朝阳区三里屯',
+            '北京市海淀区中关村',
+            '北京市东城区王府井'
+        ];
+
+        function init() {
+            // 添加初始成员
+            for (let i = 0; i < MIN_MEMBERS; i++) {
+                addMember(EXAMPLE_ADDRESSES[i] || '');
+            }
+        }
+
+        function addMember(defaultValue = '') {
+            memberCount++;
+            const memberList = document.getElementById('memberList');
+            const row = document.createElement('div');
+            row.className = 'member-row';
+            row.id = `member-${memberCount}`;
+            row.innerHTML = `
+                <div class="member-index">${memberList.children.length + 1}</div>
+                <input type="text"
+                       placeholder="输入出发地地址"
+                       value="${defaultValue}"
+                       class="member-input"
+                       required>
+                ${memberList.children.length >= MIN_MEMBERS ? `
+                    <button class="btn-remove" onclick="removeMember(${memberCount})" title="移除">×</button>
+                ` : ''}
+            `;
+            memberList.appendChild(row);
+            updateMemberIndices();
+        }
+
+        function removeMember(id) {
+            const row = document.getElementById(`member-${id}`);
+            if (row) {
+                row.remove();
+                updateMemberIndices();
+            }
+        }
+
+        function updateMemberIndices() {
+            const rows = document.querySelectorAll('.member-row');
+            rows.forEach((row, index) => {
+                const indexEl = row.querySelector('.member-index');
+                if (indexEl) {
+                    indexEl.textContent = index + 1;
+                }
+            });
+        }
+
+        function toggleApiInputs() {
+            const apiInputs = document.getElementById('apiInputs');
+            const toggle = document.querySelector('.api-toggle span:first-child');
+            apiInputs.classList.toggle('show');
+            toggle.textContent = apiInputs.classList.contains('show') ? '▼' : '▶';
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => {
+                errorEl.classList.remove('show');
+            }, 5000);
+        }
+
+        async function generateMeetingPoint() {
+            // 收集数据
+            const time = document.getElementById('meetingTime').value;
+            const preference = document.getElementById('preference').value;
+            const inputs = document.querySelectorAll('.member-input');
+            const addresses = Array.from(inputs).map(input => input.value.trim()).filter(v => v);
+
+            // 验证
+            if (addresses.length < MIN_MEMBERS) {
+                showError(`请至少输入 ${MIN_MEMBERS} 个出发地`);
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('generateBtn').disabled = true;
+            document.getElementById('resultSection').classList.remove('show');
+
+            const deepseekKey = document.getElementById('deepseekKey').value.trim();
+
+            try {
+                let recommendation;
+
+                if (deepseekKey) {
+                    // 调用 DeepSeek API
+                    recommendation = await callDeepSeekAPI(addresses, time, preference, deepseekKey);
+                } else {
+                    // 演示模式：模拟 API 调用
+                    await simulateAPICall();
+                    recommendation = getMockRecommendation(addresses, preference);
+                }
+
+                // 显示结果
+                displayResult(recommendation, addresses);
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError('生成推荐失败，请重试。' + (error.message || ''));
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('generateBtn').disabled = false;
+            }
+        }
+
+        async function callDeepSeekAPI(addresses, time, preference, apiKey) {
+            const prompt = `请根据以下信息推荐一个最佳聚会碰面地点：
+
+出发地列表：
+${addresses.map((addr, i) => `${i + 1}. ${addr}`).join('\n')}
+
+聚会时间：${time}
+${preference ? `口味偏好：${preference}` : ''}
+
+请推荐一个具体的地点（餐厅、商场或其他适合聚会的场所），要求：
+1. 考虑地理位置的中心性，让大家出行都比较方便
+2. ${preference ? `符合${preference}的口味偏好` : '适合多人聚会'}
+3. 提供具体的地点名称和详细地址
+
+请按以下JSON格式返回：
+{
+  "name": "地点名称",
+  "address": "详细地址",
+  "reason": "推荐理由（1-2句话）"
+}`;
+
+            const response = await fetch('https://api.deepseek.com/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'deepseek-chat',
+                    temperature: 0.2,
+                    response_format: { type: 'json_object' },
+                    messages: [
+                        {
+                            role: 'system',
+                            content: '你是聚会选址助手。请仅返回可解析的 JSON，不要输出 markdown 或额外说明。'
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ]
+                })
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`DeepSeek API 请求失败: ${response.status} ${errText}`);
+            }
+
+            const data = await response.json();
+            const text = data?.choices?.[0]?.message?.content?.trim();
+            if (!text) {
+                throw new Error('DeepSeek 返回内容为空');
+            }
+
+            // 解析 JSON
+            const cleaned = text
+                .replace(/^```json\s*/i, '')
+                .replace(/^```\s*/i, '')
+                .replace(/\s*```$/i, '')
+                .trim();
+
+            try {
+                const parsed = JSON.parse(cleaned);
+                return {
+                    name: parsed.name || '推荐碰面点',
+                    address: parsed.address || '北京市朝阳区',
+                    reason: parsed.reason || '根据大家出发地综合推荐该地点。'
+                };
+            } catch {
+                const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    return {
+                        name: parsed.name || '推荐碰面点',
+                        address: parsed.address || '北京市朝阳区',
+                        reason: parsed.reason || '根据大家出发地综合推荐该地点。'
+                    };
+                }
+            }
+
+            throw new Error('无法解析推荐结果');
+        }
+
+        async function simulateAPICall() {
+            // 模拟网络延迟
+            return new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        function getMockRecommendation(addresses, preference) {
+            const mockVenues = {
+                '中餐': { name: '全聚德烤鸭店', address: '北京市朝阳区建国路88号', reason: '经典中餐，位置便利，适合多人聚餐' },
+                '日料': { name: '元气寿司', address: '北京市朝阳区三里屯太古里', reason: '新鲜日料，环境优雅，交通便利' },
+                '韩餐': { name: '汉拿山韩式烤肉', address: '北京市海淀区五道口购物中心', reason: '正宗韩式烤肉，地理位置居中' },
+                '西餐': { name: 'Blue Frog 蓝蛙', address: '北京市朝阳区国贸商城', reason: '美式西餐，氛围轻松，适合朋友聚会' },
+                '火锅': { name: '海底捞火锅', address: '北京市东城区王府井大街', reason: '服务优质，位置中心，适合多人聚餐' },
+                '烧烤': { name: '很久以前羊肉串', address: '北京市朝阳区望京SOHO', reason: '人气烧烤，交通便利，氛围热闹' },
+                '咖啡厅': { name: '星巴克臻选', address: '北京市朝阳区三里屯太古里', reason: '环境舒适，位置便利，适合聊天聚会' },
+                '酒吧': { name: 'Migas Mercado', address: '北京市朝阳区三里屯那里花园', reason: '露台酒吧，氛围好，交通便利' },
+                '': { name: '西贝莜面村', address: '北京市朝阳区朝阳大悦城', reason: '位置中心，口味大众，适合多人聚餐' }
+            };
+
+            return mockVenues[preference] || mockVenues[''];
+        }
+
+        function displayResult(recommendation, addresses) {
+            // 显示成员汇总
+            const summaryEl = document.getElementById('membersSummary');
+            summaryEl.innerHTML = `
+                <div style="margin-bottom: 10px; font-weight: 500; color: #555;">聚会成员（${addresses.length}人）</div>
+                <div>
+                    ${addresses.map(addr => `
+                        <span class="member-tag">
+                            <span class="dot"></span>
+                            ${addr.length > 15 ? addr.substring(0, 15) + '...' : addr}
+                        </span>
+                    `).join('')}
+                </div>
+            `;
+
+            // 显示推荐结果
+            document.getElementById('venueName').textContent = recommendation.name;
+            document.getElementById('venueAddress').textContent = recommendation.address;
+            document.getElementById('venueReason').textContent = recommendation.reason;
+
+            document.getElementById('resultSection').classList.add('show');
+
+            // 初始化地图
+            initMap(recommendation, addresses);
+
+            // 滚动到结果区域
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function initMap(recommendation, addresses) {
+            const amapKey = document.getElementById('amapKey').value.trim();
+
+            if (!amapKey) {
+                renderMockMap(recommendation, addresses);
+                return;
+            }
+
+            try {
+                await loadAmapScript(amapKey);
+                await renderRealMap(recommendation, addresses);
+            } catch (error) {
+                console.error('AMap init error:', error);
+                showError('高德地图加载失败，已切换演示模式地图。');
+                renderMockMap(recommendation, addresses);
+            }
+        }
+
+        async function renderRealMap(recommendation, addresses) {
+            const map = new AMap.Map('map', {
+                zoom: 11,
+                center: [116.397428, 39.90923] // 默认北京中心
+            });
+
+            const geocoder = new AMap.Geocoder({ city: '全国' });
+            const overlays = [];
+
+            const geocode = (address) => new Promise((resolve, reject) => {
+                geocoder.getLocation(address, (status, result) => {
+                    if (status === 'complete' && result.geocodes && result.geocodes.length > 0) {
+                        const loc = result.geocodes[0].location;
+                        resolve([loc.lng, loc.lat]);
+                        return;
+                    }
+                    reject(new Error(`地址解析失败: ${address}`));
+                });
+            });
+
+            try {
+                const meetingPoint = await geocode(recommendation.address);
+                const meetingMarker = new AMap.Marker({
+                    map,
+                    position: meetingPoint,
+                    title: recommendation.name
+                });
+                meetingMarker.setLabel({
+                    direction: 'top',
+                    content: `<div style="padding:2px 8px;background:#ef4444;color:#fff;border-radius:4px;font-size:12px;">推荐点</div>`
+                });
+                overlays.push(meetingMarker);
+            } catch (error) {
+                console.warn(error.message);
+            }
+
+            const memberResults = await Promise.allSettled(
+                addresses.map((address) => geocode(address))
+            );
+
+            memberResults.forEach((result, idx) => {
+                if (result.status !== 'fulfilled') {
+                    return;
+                }
+                const marker = new AMap.Marker({
+                    map,
+                    position: result.value,
+                    title: `成员${idx + 1}`
+                });
+                marker.setLabel({
+                    direction: 'right',
+                    content: `<div style="padding:2px 6px;background:#4f46e5;color:#fff;border-radius:4px;font-size:12px;">成员${idx + 1}</div>`
+                });
+                overlays.push(marker);
+            });
+
+            if (overlays.length > 0) {
+                map.setFitView(overlays, false, [40, 40, 40, 40]);
+            }
+        }
+
+        function renderMockMap(recommendation, addresses) {
+            const mapEl = document.getElementById('map');
+            mapEl.innerHTML = `
+                <div style="
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #e0e7ff 0%, #d1e0fd 100%);
+                    border-radius: 12px;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    color: #4a5568;
+                    position: relative;
+                    overflow: hidden;
+                ">
+                    <div style="
+                        position: absolute;
+                        top: 20px;
+                        left: 20px;
+                        right: 20px;
+                        bottom: 20px;
+                        background: url('data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22none%22 width=%22100%22 height=%22100%22/><path d=%22M0 50 L100 50 M50 0 L50 100%22 stroke=%22%23a0aec0%22 stroke-width=%220.5%22 stroke-dasharray=%222,2%22/></svg>');
+                        opacity: 0.5;
+                        border-radius: 8px;
+                    "></div>
+
+                    <!-- 模拟地图标记 -->
+                    <div style="position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                        <div style="font-size: 2.5rem;">📍</div>
+                        <div style="background: white; padding: 4px 12px; border-radius: 4px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.15); white-space: nowrap;">${recommendation.name}</div>
+                    </div>
+
+                    ${addresses.map((addr, i) => `
+                        <div style="position: absolute; ${getMemberPosition(i, addresses.length)}; text-align: center;">
+                            <div style="font-size: 1.5rem;">👤</div>
+                            <div style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; white-space: nowrap;">成员${i + 1}</div>
+                        </div>
+                    `).join('')}
+
+                    <div style="text-align: center; z-index: 1; background: rgba(255,255,255,0.9); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                        <div style="font-size: 3rem; margin-bottom: 10px;">🗺️</div>
+                        <div style="font-weight: 600; margin-bottom: 5px;">演示模式</div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">
+                            配置高德 API Key 可查看真实地图
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getMemberPosition(index, total) {
+            const positions = [
+                'top: 20%; left: 20%;',
+                'top: 20%; right: 20%;',
+                'bottom: 30%; left: 15%;',
+                'bottom: 30%; right: 15%;',
+                'top: 50%; left: 10%;',
+                'top: 50%; right: 10%;',
+                'bottom: 20%; left: 30%;',
+                'bottom: 20%; right: 30%;'
+            ];
+            return positions[index] || positions[0];
+        }
+
+        // 加载高德地图 API（如果有 key）
+        let amapLoadingPromise = null;
+        function loadAmapScript(amapKey) {
+            if (window.AMap) {
+                return Promise.resolve();
+            }
+            if (amapLoadingPromise) {
+                return amapLoadingPromise;
+            }
+            amapLoadingPromise = new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://webapi.amap.com/maps?v=2.0&key=${encodeURIComponent(amapKey)}&plugin=AMap.Geocoder`;
+                script.async = true;
+                script.defer = true;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error('高德地图脚本加载失败'));
+                document.head.appendChild(script);
+            });
+            return amapLoadingPromise;
+        }
+
+        function persistApiKeys() {
+            localStorage.setItem('ontheway_deepseek_key', document.getElementById('deepseekKey').value.trim());
+            localStorage.setItem('ontheway_amap_key', document.getElementById('amapKey').value.trim());
+        }
+
+        function restoreApiKeys() {
+            const deepseekKey = localStorage.getItem('ontheway_deepseek_key') || '';
+            const amapKey = localStorage.getItem('ontheway_amap_key') || '';
+            document.getElementById('deepseekKey').value = deepseekKey;
+            document.getElementById('amapKey').value = amapKey;
+            if (amapKey) {
+                loadAmapScript(amapKey).catch(() => {
+                    console.warn('高德地图预加载失败');
+                });
+            }
+        }
+
+        // 初始化
+        init();
+        restoreApiKeys();
+
+        // 监听 API Key 变化
+        document.getElementById('deepseekKey').addEventListener('change', persistApiKeys);
+        document.getElementById('amapKey').addEventListener('change', () => {
+            persistApiKeys();
+            const amapKey = document.getElementById('amapKey').value.trim();
+            if (amapKey) {
+                loadAmapScript(amapKey).catch(() => {
+                    showError('高德 API Key 无效或地图加载失败');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
